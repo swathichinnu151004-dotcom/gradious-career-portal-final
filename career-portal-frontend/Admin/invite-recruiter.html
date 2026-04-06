@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Invite Recruiter - Gradious Admin</title>
+  <link rel="stylesheet" href="../css/invite-recruiter.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+
+  <div class="admin-layout">
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="admin-logo">
+        <img src="../images/logo.png" alt="Gradious Logo" />
+        <span>Gradious Admin</span>
+      </div>
+
+      <nav class="admin-menu">
+        <a href="dashboard.html">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="manage-users.html">
+          <i class="fa-solid fa-users"></i>
+          <span>Manage Users</span>
+        </a>
+
+        <a href="manage-recruiters.html">
+          <i class="fa-solid fa-user-tie"></i>
+          <span>Manage Recruiters</span>
+        </a>
+
+        <a href="invite-recruiter.html" class="active">
+          <i class="fa-solid fa-envelope"></i>
+          <span>Invite Recruiter</span>
+        </a>
+
+        <a href="manage-jobs.html">
+          <i class="fa-solid fa-briefcase"></i>
+          <span>Manage Jobs</span>
+        </a>
+
+        <a href="applications.html">
+          <i class="fa-solid fa-file-lines"></i>
+          <span>Applications</span>
+        </a>
+
+        <a href="#" id="logoutBtn">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Logout</span>
+        </a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+
+      <!-- Topbar -->
+      <div class="admin-topbar">
+        <div class="topbar-left">
+          <h1>Invite Recruiter</h1>
+          <p>Send recruiter invitation emails and track invite status.</p>
+        </div>
+
+        <div class="topbar-right">
+          <div class="admin-profile">
+            <div class="avatar">
+              <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <div class="admin-info">
+              <span class="name">Admin</span>
+              <span class="role">Administrator</span>
+            </div>
+          </div>
+
+          <button type="button" id="topLogoutBtn" class="logout-btn">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <!-- Invite Form -->
+      <section class="invite-card">
+        <div class="card-header">
+          <h2>Send Recruiter Invite</h2>
+          <p>Invite only authorized recruiters to access the portal.</p>
+        </div>
+
+        <form id="inviteRecruiterForm" class="invite-form">
+          <div class="form-group">
+            <label for="recruiterEmail">Recruiter Email</label>
+            <input
+              type="email"
+              id="recruiterEmail"
+              name="recruiterEmail"
+              placeholder="Enter recruiter email"
+              autocomplete="off"
+              required
+            />
+            <small class="input-help">
+              An invitation email with a secure signup link will be sent.
+            </small>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="send-btn" id="sendInviteBtn">
+              <i class="fa-solid fa-paper-plane"></i>
+              Send Invite
+            </button>
+          </div>
+        </form>
+
+        <p id="inviteMessage" class="form-message"></p>
+      </section>
+
+      <!-- Invited Recruiters List -->
+      <section class="list-card">
+        <div class="list-header">
+  <div class="list-title">
+    <h2>Invited Recruiters</h2>
+    <p>Track recruiter invitation status and latest activity.</p>
+  </div>
+
+  <div class="list-controls">
+    <input
+      type="text"
+      id="searchInvite"
+      placeholder="Search by email..."
+      class="search-input"
+    />
+<select id="statusFilter" class="filter-select">
+  <option value="">All</option>
+  <option value="Pending">Pending</option>
+  <option value="Accepted">Accepted</option>
+  <option value="Expired">Expired</option>
+</select>
+
+    <button id="refreshInvitesBtn" class="refresh-btn">
+      <i class="fa-solid fa-rotate"></i> Refresh
+    </button>
+  </div>
+</div>
+
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>S.No</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Invited On</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="invitedRecruitersTableBody">
+              <tr>
+                <td colspan="4" class="empty-row">No invites found</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="pagination-bar">
+  <p id="paginationInfo">Showing 0-0 of 0</p>
+
+  <div class="pagination-actions">
+    <button type="button" id="prevPageBtn" class="page-btn">Prev</button>
+    <button type="button" id="nextPageBtn" class="page-btn">Next</button>
+  </div>
+</div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast"></div>
+  <div id="confirmModal" class="confirm-modal">
+  <div class="confirm-box">
+    <h3>Cancel Invite</h3>
+    <p>Are you sure you want to cancel this recruiter invite?</p>
+
+    <div class="confirm-actions">
+      <button type="button" id="closeConfirmBtn" class="modal-btn secondary-btn">Close</button>
+      <button type="button" id="confirmCancelBtn" class="modal-btn danger-btn">Cancel Invite</button>
+    </div>
+  </div>
+</div>
+
+  <script src="../js/invite-recruiter.js"></script>
+
+  <script>
+    const logoutBtn = document.getElementById("logoutBtn");
+    const topLogoutBtn = document.getElementById("topLogoutBtn");
+
+    function adminLogout() {
+      localStorage.removeItem("token");
+      localStorage.removeItem("role");
+      localStorage.removeItem("user");
+      window.location.href = "../login.html";
+    }
+
+    if (logoutBtn) logoutBtn.addEventListener("click", function (e) {
+      e.preventDefault();
+      adminLogout();
+    });
+
+    if (topLogoutBtn) topLogoutBtn.addEventListener("click", adminLogout);
+  </script>
+</body>
+</html>

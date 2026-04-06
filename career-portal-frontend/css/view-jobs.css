@@ -1,0 +1,508 @@
+/* ===== RESET ===== */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Inter", Arial, sans-serif;
+}
+
+body {
+  background: #f3f6fb;
+  color: #1e293b;
+}
+
+/* ===== LAYOUT ===== */
+.user-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ===== SIDEBAR ===== */
+.user-sidebar {
+  width: 260px;
+  background: #0f2244;
+  color: #fff;
+  padding: 24px 18px;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.user-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 36px;
+}
+
+.user-logo img {
+  width: 40px;
+  height: 40px;
+}
+
+.user-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.user-menu a {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #cbd5e1;
+  text-decoration: none;
+  padding: 13px 14px;
+  border-radius: 10px;
+  font-size: 15px;
+  transition: 0.25s;
+}
+
+.user-menu a:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.user-menu a.active {
+  background: #2563eb;
+  color: #fff;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+}
+
+/* ===== MAIN ===== */
+.user-main {
+  margin-left: 260px;
+  width: calc(100% - 260px);
+  padding: 32px;
+}
+
+/* ===== TOPBAR ===== */
+.user-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+  padding: 18px 22px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.topbar-left h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.topbar-left p {
+  color: #64748b;
+  font-size: 15px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* ===== NOTIFICATION ===== */
+.icon-btn {
+  width: 48px;
+  height: 48px;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #2563eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+}
+
+.icon-btn i {
+  font-size: 20px;
+}
+
+.badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+/* ===== PROFILE ===== */
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #f8fafc;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  background: #2563eb;
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-info .name {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.user-info .role {
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* ===== LOGOUT ===== */
+.logout-btn {
+  height: 48px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #ff6b6b, #ff4d4d);
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 16px rgba(255, 77, 77, 0.2);
+  transition: 0.2s ease;
+}
+
+.logout-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* ===== SEARCH ===== */
+.jobs-header {
+  margin-bottom: 20px;
+}
+
+.search-box {
+  position: relative;
+  width: 380px;
+  max-width: 100%;
+}
+
+.search-box i {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 12px 14px 12px 36px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  outline: none;
+  font-size: 14px;
+  background: #fff;
+}
+
+.search-box input:focus {
+  border-color: #2563eb;
+}
+
+/* ===== JOB TABLE CARD ===== */
+.jobs-container {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 18px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.jobs-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.jobs-table thead {
+  background: #f1f5f9;
+}
+
+.jobs-table th {
+  padding: 14px;
+  font-size: 13px;
+  color: #475569;
+  text-align: left;
+}
+
+.jobs-table td {
+  padding: 14px;
+  border-top: 1px solid #e2e8f0;
+}
+
+/* ===== ROW HOVER ===== */
+.jobs-table tbody tr:hover {
+  background: #f8fafc;
+  transition: 0.2s;
+}
+
+/* ===== APPLY BUTTON ===== */
+.apply-btn {
+  background: #22c55e;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.apply-btn:hover {
+  background: #16a34a;
+  transform: translateY(-1px);
+}
+
+.applied-btn {
+  background: #cbd5e1;
+  color: #475569;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: not-allowed;
+  font-weight: 600;
+}
+
+/* ===== MODAL ===== */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 2000;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.modal-content {
+  background: #fff;
+  width: 100%;
+  max-width: 500px;
+  padding: 30px;
+  border-radius: 18px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15);
+  animation: popup 0.25s ease;
+}
+
+.modal-content h2 {
+  margin-bottom: 20px;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.modal-content input[type="text"],
+.modal-content input[type="email"],
+.modal-content input[type="file"] {
+  width: 100%;
+  padding: 14px 16px;
+  margin-top: 12px;
+  margin-bottom: 16px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  font-size: 15px;
+  outline: none;
+}
+
+.modal-content input:focus {
+  border-color: #2563eb;
+}
+
+.modal-content label {
+  display: block;
+  font-weight: 600;
+  margin-top: 8px;
+  color: #334155;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.cancel-btn,
+.submit-btn {
+  border: none;
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.cancel-btn {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.cancel-btn:hover {
+  background: #d1d5db;
+}
+
+.submit-btn {
+  background: #2563eb;
+  color: white;
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.22);
+}
+
+.submit-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+.submit-btn:disabled {
+  background: #93c5fd;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+@keyframes popup {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed;
+  top: 25px;
+  right: 25px;
+  min-width: 300px;
+  max-width: 380px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-20px);
+  transition: all 0.3s ease;
+  z-index: 3000;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.toast.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.toast.success {
+  background: #22c55e;
+}
+
+.toast.error {
+  background: #ef4444;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 992px) {
+  .user-sidebar {
+    width: 220px;
+  }
+
+  .user-main {
+    margin-left: 220px;
+    width: calc(100% - 220px);
+    padding: 20px;
+  }
+
+  .user-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .topbar-right {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .user-sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+  }
+
+  .user-layout {
+    flex-direction: column;
+  }
+
+  .user-main {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .search-box {
+    width: 100%;
+  }
+
+  .modal-content {
+    padding: 22px;
+  }
+
+  .modal-content h2 {
+    font-size: 24px;
+  }
+
+  .modal-actions {
+    flex-direction: column;
+  }
+
+  .cancel-btn,
+  .submit-btn {
+    width: 100%;
+  }
+}

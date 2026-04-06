@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Users - Gradious Admin</title>
+  <link rel="stylesheet" href="../css/manage-users.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+</head>
+<body>
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo">
+        <img src="../images/logo.png" alt="Gradious Logo" />
+        <span>Gradious Admin</span>
+      </div>
+
+      <nav class="admin-menu">
+        <a href="dashboard.html">
+          <i class="fa-solid fa-chart-line"></i> Dashboard
+        </a>
+
+        <a href="manage-users.html" class="active">
+          <i class="fa-solid fa-users"></i> Manage Users
+        </a>
+
+        <a href="manage-recruiters.html">
+          <i class="fa-solid fa-user-tie"></i> Manage Recruiters
+        </a>
+
+        <a href="invite-recruiter.html">
+          <i class="fa-solid fa-envelope"></i> Invite Recruiter
+        </a>
+
+        <a href="manage-jobs.html">
+          <i class="fa-solid fa-briefcase"></i> Manage Jobs
+        </a>
+
+        <a href="view-applications.html">
+          <i class="fa-solid fa-file-lines"></i> Applications
+        </a>
+      </nav>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <div class="topbar-left">
+          <h1>Manage Users</h1>
+          <p>View, block, unblock, and delete users</p>
+        </div>
+
+        <div class="topbar-right">
+          <div class="notification">
+            <button type="button" class="icon-btn" onclick="toggleNotifications()">
+              <i class="bi bi-bell-fill"></i>
+              <span class="badge" id="notificationCount">0</span>
+            </button>
+
+            <div class="notification-dropdown" id="notificationDropdown">
+              <div class="dropdown-header">
+                <h4>Notifications</h4>
+                <button type="button" class="close-btn" onclick="closeNotifications(event)">×</button>
+              </div>
+
+              <ul id="notificationList">
+                <li class="no-data">No new notifications</li>
+              </ul>
+
+              <div class="dropdown-footer">
+                <button type="button" onclick="clearNotifications(event)">Clear All</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="user-profile">
+            <div class="avatar">
+              <i class="bi bi-person-fill"></i>
+            </div>
+
+            <div class="user-info">
+              <span class="name">Admin</span>
+              <span class="role">Administrator</span>
+            </div>
+
+            <div>
+              <button type="button" class="logout-btn" onclick="logout()">
+                <i class="bi bi-box-arrow-right"></i>
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="admin-section">
+        <div class="users-toolbar">
+          <div class="filter-buttons">
+            <button class="filter-btn active" onclick="filterUsers('all', event)">All</button>
+            <button class="filter-btn" onclick="filterUsers('active', event)">Active</button>
+            <button class="filter-btn" onclick="filterUsers('blocked', event)">Blocked</button>
+          </div>
+
+          <div class="search-box">
+            <input
+              type="text"
+              id="userSearch"
+              placeholder="Search by name or email"
+              onkeyup="searchUsers()"
+            />
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="admin-table" id="usersTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>City</th>
+                <th>Qualification</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="8">Loading users...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="user-sidebar-overlay" id="userSidebarOverlay" onclick="closeUserSidebar()"></div>
+
+  <div class="user-sidebar" id="userSidebar">
+    <div class="user-sidebar-header">
+      <h2>User Details</h2>
+      <button class="close-sidebar-btn" onclick="closeUserSidebar()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="user-sidebar-body">
+      <div class="detail-item">
+        <span>Name</span>
+        <p id="detailName">-</p>
+      </div>
+
+      <div class="detail-item">
+        <span>Email</span>
+        <p id="detailEmail">-</p>
+      </div>
+
+      <div class="detail-item">
+        <span>Phone</span>
+        <p id="detailPhone">-</p>
+      </div>
+
+      <div class="detail-item">
+        <span>City</span>
+        <p id="detailCity">-</p>
+      </div>
+
+      <div class="detail-item">
+        <span>Qualification</span>
+        <p id="detailQualification">-</p>
+      </div>
+
+      <div class="detail-item">
+        <span>Role</span>
+        <p id="detailRole">-</p>
+      </div>
+
+      <div class="detail-item">
+        <span>Status</span>
+        <p id="detailStatus">-</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="delete-modal-overlay" id="deleteModalOverlay">
+    <div class="delete-modal">
+      <div class="delete-modal-icon">
+        <i class="fa-solid fa-trash"></i>
+      </div>
+
+      <h3>Delete User</h3>
+      <p>Are you sure you want to delete this user? This action cannot be undone.</p>
+
+      <div class="delete-modal-actions">
+        <button class="cancel-delete-btn" onclick="closeDeleteModal()">Cancel</button>
+        <button class="confirm-delete-btn" onclick="confirmDeleteUser()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="undo-toast" id="undoToast">
+    <span id="undoMessage">User deleted successfully</span>
+    <button onclick="undoDelete()">Undo</button>
+  </div>
+
+  <script src="../js/manage-users.js"></script>
+</body>
+</html>

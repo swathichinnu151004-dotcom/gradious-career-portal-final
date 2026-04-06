@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Details</title>
+  <link rel="stylesheet" href="job-details.css" />
+</head>
+<body>
+
+  <section class="job-details-section">
+    <div class="container">
+      <div class="job-details-card" id="jobDetailsCard">
+        <h2 id="jobTitle">Loading...</h2>
+        <p><strong>Department:</strong> <span id="jobDepartment"></span></p>
+        <p><strong>Location:</strong> <span id="jobLocation"></span></p>
+        <p><strong>Experience:</strong> <span id="jobExperience"></span></p>
+        <p><strong>Status:</strong> <span id="jobStatus"></span></p>
+        <p><strong>Description:</strong></p>
+        <p id="jobDescription"></p>
+
+        <div class="job-actions">
+          <button class="back-btn" onclick="handleBack()">Back</button>
+          <button class="apply-btn" onclick="goToLogin()">Apply Now</button>
+          <div id="toast"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+<div id="toast"></div>
+  <script src="job-details.js"></script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Applications - Gradious Admin</title>
+  <link rel="stylesheet" href="../css/view-applications.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+</head>
+<body>
+
+  <div class="admin-layout">
+
+    <aside class="admin-sidebar">
+      <div class="admin-logo">
+        <img src="../images/logo.png" alt="Gradious Logo" />
+        <span>Gradious Admin</span>
+      </div>
+
+      <nav class="admin-menu">
+        <a href="dashboard.html">
+          <i class="fa-solid fa-chart-line"></i> Dashboard
+        </a>
+
+        <a href="manage-users.html">
+          <i class="fa-solid fa-users"></i> Manage Users
+        </a>
+
+        <a href="manage-recruiters.html">
+          <i class="fa-solid fa-user-tie"></i> Manage Recruiters
+        </a>
+
+        <a href="invite-recruiter.html">
+          <i class="fa-solid fa-envelope"></i> Invite Recruiter
+        </a>
+
+        <a href="manage-jobs.html">
+          <i class="fa-solid fa-briefcase"></i> Manage Jobs
+        </a>
+
+        <a href="view-applications.html" class="active">
+          <i class="fa-solid fa-file-lines"></i> Applications
+        </a>
+      </nav>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <div class="topbar-left">
+          <h1>Applications</h1>
+          <p>Track and manage job applications</p>
+        </div>
+
+        <div class="topbar-right">
+          <!-- Notification -->
+          <div class="notification">
+            <button type="button" class="icon-btn" onclick="toggleNotifications()">
+              <i class="bi bi-bell-fill"></i>
+              <span class="badge" id="notificationCount">0</span>
+            </button>
+
+            <div class="notification-dropdown" id="notificationDropdown">
+              <div class="dropdown-header">
+                <h4>Notifications</h4>
+                <button type="button" class="close-btn" onclick="closeNotifications(event)">×</button>
+              </div>
+
+              <ul id="notificationList">
+                <li class="no-data">No new notifications</li>
+              </ul>
+
+              <div class="dropdown-footer">
+                <button type="button" onclick="clearNotifications(event)">Clear All</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Admin Profile -->
+          <div class="user-profile">
+            <div class="avatar">
+              <i class="bi bi-person-fill"></i>
+            </div>
+
+            <div class="user-info">
+              <span class="name">Admin</span>
+              <span class="role">Administrator</span>
+            </div>
+
+            <div>
+              <button type="button" class="logout-btn" onclick="logout()">
+                <i class="bi bi-box-arrow-right"></i>
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="admin-section">
+        <div class="applications-head">
+
+  <!-- 🔍 Search -->
+  <input
+    type="text"
+    id="applicationSearch"
+    placeholder="Search by applicant or job title"
+  />
+
+  <!-- ✅ Status Filters -->
+  <div class="status-filters">
+    <button onclick="filterByStatus('All')" class="active-filter">All</button>
+    <button onclick="filterByStatus('Applied')">Applied</button>
+    <button onclick="filterByStatus('Shortlisted')">Shortlisted</button>
+    <button onclick="filterByStatus('Rejected')">Rejected</button>
+  </div>
+
+</div>
+
+        <div class="table-wrapper">
+          <table class="admin-table" id="applicationsTable">
+            <thead>
+              <tr>
+                <th>Applicant Name</th>
+                <th>Job Title</th>
+                <th>Applied Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody id="applicationsTableBody">
+              <tr>
+                <td colspan="5">Loading applications...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+<!-- Application Details Sidebar -->
+<div class="application-sidebar-overlay" id="applicationSidebarOverlay" onclick="closeApplicationSidebar()"></div>
+
+<div class="application-sidebar" id="applicationSidebar">
+  <div class="application-sidebar-header">
+    <h2>Application Details</h2>
+    <button class="close-sidebar-btn" onclick="closeApplicationSidebar()">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+
+  <div class="application-sidebar-body">
+    <div class="detail-item">
+      <span>Applicant Name</span>
+      <p id="detailApplicantName">-</p>
+    </div>
+
+    <div class="detail-item">
+      <span>Job Title</span>
+      <p id="detailJobTitle">-</p>
+    </div>
+
+    <div class="detail-item">
+      <span>Applied Date</span>
+      <p id="detailAppliedDate">-</p>
+    </div>
+
+    <div class="detail-item">
+      <span>Status</span>
+      <p id="detailApplicationStatus">-</p>
+    </div>
+  </div>
+</div>
+  <!-- ✅ Confirm Modal -->
+<div id="confirmModal" class="confirm-modal">
+  <div class="confirm-modal-content">
+    <p id="confirmModalText">Are you sure?</p>
+
+    <div class="confirm-modal-actions">
+      <button class="cancel-btn" onclick="closeConfirmModal()">Cancel</button>
+      <button class="confirm-btn" id="confirmYesBtn">Yes</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/view-applications.js"></script>
+</body>
+</html>

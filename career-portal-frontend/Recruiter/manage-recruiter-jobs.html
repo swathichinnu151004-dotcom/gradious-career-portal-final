@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Jobs - Recruiter</title>
+  <link rel="stylesheet" href="../css/manage-recruiter-jobs.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+
+  <div class="recruiter-layout">
+
+    <aside class="recruiter-sidebar">
+      <div class="recruiter-logo">
+        <img src="../images/logo.png" alt="Gradious Logo" />
+        <span>Recruiter Panel</span>
+      </div>
+
+      <nav class="recruiter-menu">
+        <a href="dashboard.html">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="post-job.html">
+          <i class="fa-solid fa-plus"></i>
+          <span>Post Job</span>
+        </a>
+
+        <a href="manage-recruiter-jobs.html" class="active">
+          <i class="fa-solid fa-briefcase"></i>
+          <span>Manage Jobs</span>
+        </a>
+
+        <a href="recruiter-applications.html">
+          <i class="fa-solid fa-file-lines"></i>
+          <span>Applications</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="recruiter-main">
+
+      <div class="recruiter-topbar">
+        <div class="topbar-left">
+          <h1>Manage Jobs</h1>
+          <p>View, update and delete your job postings</p>
+        </div>
+
+        <div class="topbar-right">
+          <div class="notification">
+            <button type="button" class="icon-btn">
+              <i class="fa-solid fa-bell"></i>
+              <span class="badge">0</span>
+            </button>
+          </div>
+
+          <div class="user-profile">
+            <div class="avatar">
+              <i class="fa-solid fa-user"></i>
+            </div>
+
+            <div class="user-info">
+              <span class="name">Recruiter</span>
+              <span class="role">Recruiter Panel</span>
+            </div>
+
+            <button class="logout-btn" onclick="recruiterLogout()">
+              <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <section class="jobs-section">
+        <div class="jobs-head">
+          <input
+            type="text"
+            id="jobSearch"
+            placeholder="Search job title or department"
+            onkeyup="searchJobs()"
+          />
+        </div>
+
+        <div class="table-wrapper">
+          <table class="jobs-table">
+            <thead>
+              <tr>
+                <th>Job Title</th>
+                <th>Department</th>
+                <th>Location</th>
+                <th>Experience</th>
+                <th>Status</th>
+                <th>Posted Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="jobsTableBody">
+              <tr>
+                <td colspan="7">Loading jobs...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- VIEW MODAL -->
+  <div class="modal-overlay" id="viewModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>Job Details</h2>
+        <button class="modal-close" onclick="closeViewModal()">&times;</button>
+      </div>
+
+      <div class="modal-body details-grid">
+        <div class="detail-card">
+          <label>Job Title</label>
+          <p id="viewJobTitle">-</p>
+        </div>
+
+        <div class="detail-card">
+          <label>Department</label>
+          <p id="viewDepartment">-</p>
+        </div>
+
+        <div class="detail-card">
+          <label>Location</label>
+          <p id="viewLocation">-</p>
+        </div>
+
+        <div class="detail-card">
+          <label>Experience</label>
+          <p id="viewExperience">-</p>
+        </div>
+
+        <div class="detail-card">
+          <label>Status</label>
+          <p id="viewStatus">-</p>
+        </div>
+
+        <div class="detail-card">
+          <label>Posted Date</label>
+          <p id="viewPostedDate">-</p>
+        </div>
+
+        <div class="detail-card full">
+          <label>Description</label>
+          <p id="viewDescription">-</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UPDATE MODAL -->
+  <div class="modal-overlay" id="updateModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2>Update Job</h2>
+        <button class="modal-close" onclick="closeUpdateModal()">&times;</button>
+      </div>
+
+      <form id="updateJobForm" class="modal-form">
+        <input type="hidden" id="updateJobId" />
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="updateJobTitle">Job Title</label>
+            <input type="text" id="updateJobTitle" required />
+          </div>
+
+          <div class="form-group">
+            <label for="updateDepartment">Department</label>
+            <input type="text" id="updateDepartment" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="updateLocation">Location</label>
+            <input type="text" id="updateLocation" required />
+          </div>
+
+          <div class="form-group">
+            <label for="updateExperience">Experience</label>
+            <input type="text" id="updateExperience" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="updateStatus">Status</label>
+            <select id="updateStatus" required>
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="INACTIVE">INACTIVE</option>
+            </select>
+          </div>
+
+          <div class="form-group empty-space"></div>
+        </div>
+
+        <div class="form-row single">
+          <div class="form-group">
+            <label for="updateDescription">Description</label>
+            <textarea id="updateDescription" rows="6" required></textarea>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="secondary-btn" onclick="closeUpdateModal()">Cancel</button>
+          <button type="submit" class="primary-btn">Update Job</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- DELETE MODAL -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="delete-modal-box">
+      <div class="delete-icon">
+        <i class="fa-solid fa-trash"></i>
+      </div>
+      <h2>Delete Job</h2>
+      <p>Are you sure you want to delete this job? This action cannot be undone.</p>
+
+      <div class="modal-actions center">
+        <button type="button" class="secondary-btn" onclick="closeDeleteModal()">Cancel</button>
+        <button type="button" class="danger-btn" id="confirmDeleteBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
+
+  <script src="../js/manage-recruiter-jobs.js"></script>
+</body>
+</html>

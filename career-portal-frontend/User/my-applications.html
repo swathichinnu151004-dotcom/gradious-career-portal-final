@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Applications - Gradious Careers Portal</title>
+
+  <link rel="stylesheet" href="../css/my-applications.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+
+  <div class="user-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="user-sidebar">
+      <div class="user-logo">
+        <img src="../images/logo.png" alt="Logo" />
+        <span>User Panel</span>
+      </div>
+
+      <nav class="user-menu">
+        <a href="dashboard.html">
+          <i class="fa-solid fa-chart-line"></i>
+          Dashboard
+        </a>
+
+        <a href="view-jobs.html">
+          <i class="fa-solid fa-briefcase"></i>
+          View Jobs
+        </a>
+
+        <a href="my-applications.html" class="active">
+          <i class="fa-solid fa-file-lines"></i>
+          My Applications
+        </a>
+      </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="user-main">
+
+      <!-- TOPBAR -->
+      <div class="user-topbar">
+        <div class="topbar-left">
+          <h1>My Applications</h1>
+          <p>Track your job applications</p>
+        </div>
+
+        <div class="topbar-right">
+          <!-- Notification -->
+          <div class="notification">
+            <button class="icon-btn" type="button">
+              <i class="fa-solid fa-bell"></i>
+              <span class="badge" id="notificationCount">0</span>
+            </button>
+          </div>
+
+          <!-- Profile -->
+          <div class="user-profile">
+            <div class="avatar">
+              <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="user-info">
+              <span class="name" id="userName">User</span>
+              <span class="role">Job Seeker</span>
+            </div>
+          </div>
+
+          <!-- Logout -->
+          <button onclick="userLogout()" class="logout-btn" type="button">
+            <i class="fa-solid fa-right-from-bracket"></i>
+            Logout
+          </button>
+        </div>
+      </div>
+
+      <!-- APPLICATION TABLE -->
+      <div class="applications-container">
+        <div class="table-wrapper">
+          <table class="applications-table">
+            <thead>
+              <tr>
+                <th>Job Title</th>
+                <th>Department</th>
+                <th>Location</th>
+                <th>Applied Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+
+            <tbody id="applicationsTableBody">
+              <tr>
+                <td colspan="5">Loading applications...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="../js/my-applications.js"></script>
+</body>
+</html>

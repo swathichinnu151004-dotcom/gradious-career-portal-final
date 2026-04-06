@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>View Jobs - Gradious Careers Portal</title>
+
+  <link rel="stylesheet" href="../css/view-jobs.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+
+<body>
+<div class="user-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="user-sidebar">
+    <div class="user-logo">
+      <img src="../images/logo.png" alt="Logo" />
+      <span>User Panel</span>
+    </div>
+
+    <nav class="user-menu">
+      <a href="dashboard.html">
+        <i class="fa-solid fa-chart-line"></i> Dashboard
+      </a>
+
+      <a href="view-jobs.html" class="active">
+        <i class="fa-solid fa-briefcase"></i> View Jobs
+      </a>
+
+      <a href="my-applications.html">
+        <i class="fa-solid fa-file-lines"></i> My Applications
+      </a>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="user-main">
+
+    <!-- TOPBAR -->
+    <div class="user-topbar">
+      <div class="topbar-left">
+        <h1>Available Jobs</h1>
+        <p>Explore latest job openings</p>
+      </div>
+
+      <div class="topbar-right">
+        <div class="notification">
+          <button class="icon-btn">
+            <i class="fa-solid fa-bell"></i>
+            <span class="badge" id="notificationCount">0</span>
+          </button>
+        </div>
+
+        <div class="user-profile">
+          <div class="avatar">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div class="user-info">
+            <span class="name" id="userName">User</span>
+            <span class="role">Job Seeker</span>
+          </div>
+        </div>
+
+        <button onclick="userLogout()" class="logout-btn">
+          <i class="fa-solid fa-right-from-bracket"></i> Logout
+        </button>
+      </div>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="jobs-header">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input
+          type="text"
+          id="jobSearch"
+          placeholder="Search by job title, department, or location"
+          onkeyup="filterJobs()"
+        />
+      </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="jobs-container">
+      <div class="table-wrapper">
+        <table class="jobs-table">
+          <thead>
+            <tr>
+              <th>Job Title</th>
+              <th>Department</th>
+              <th>Location</th>
+              <th>Experience</th>
+              <th>Apply</th>
+            </tr>
+          </thead>
+
+          <tbody id="jobsTableBody">
+            <tr>
+              <td colspan="5">Loading jobs...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- APPLY MODAL -->
+<div id="applyModal" class="modal">
+  <div class="modal-content">
+    <h2>Apply for Job</h2>
+
+    <form id="applyJobForm" enctype="multipart/form-data">
+      <input type="text" id="fullName" placeholder="Your Full Name" required />
+      <input type="email" id="email" placeholder="Your Email" required />
+
+      <label for="resume">Upload Resume</label>
+      <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx" required />
+
+      <div class="modal-actions">
+        <button type="button" class="cancel-btn" onclick="closeApplyModal()">Cancel</button>
+        <button type="submit" class="submit-btn" id="submitApplicationBtn">Submit Application</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast"></div>
+
+<!-- SCRIPT -->
+<script src="../js/view-jobs.js"></script>
+
+</body>
+</html>

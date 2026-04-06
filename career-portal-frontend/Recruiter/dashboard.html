@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recruiter Dashboard - Gradious Careers Portal</title>
+  <link rel="stylesheet" href="../css/recruiter-dashboard.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+
+  <div class="recruiter-layout">
+
+    <aside class="recruiter-sidebar">
+      <div class="recruiter-logo">
+        <img src="../images/logo.png" alt="Gradious Logo" />
+        <span>Recruiter Panel</span>
+      </div>
+
+      <nav class="recruiter-menu">
+        <a href="dashboard.html" class="active">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="post-job.html">
+          <i class="fa-solid fa-plus"></i>
+          <span>Post Job</span>
+        </a>
+
+        <a href="manage-recruiter-jobs.html">
+          <i class="fa-solid fa-briefcase"></i>
+          <span>Manage Jobs</span>
+        </a>
+
+        <a href="recruiter-applications.html">
+          <i class="fa-solid fa-file-lines"></i>
+          <span>Applications</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="recruiter-main">
+
+      <div class="recruiter-topbar">
+  <div class="topbar-left">
+    <h1>Recruiter Dashboard</h1>
+    <p>Welcome back, Recruiter</p>
+  </div>
+
+  <div class="topbar-right">
+    <div class="notification">
+      <button type="button" class="icon-btn">
+        <i class="fa-solid fa-bell"></i>
+        <span class="badge">0</span>
+      </button>
+    </div>
+
+    <div class="user-profile">
+      <div class="avatar">
+        <i class="fa-solid fa-user"></i>
+      </div>
+
+      <div class="user-info">
+        <span class="name">Recruiter</span>
+        <span class="role">Recruiter Panel</span>
+      </div>
+
+      <button class="logout-btn" onclick="recruiterLogout()">
+        <i class="fa-solid fa-right-from-bracket"></i> Logout
+      </button>
+    </div>
+  </div>
+</div>
+
+      <section class="recruiter-cards">
+  <div class="recruiter-card">
+    <h3>Total Jobs Posted</h3>
+    <p id="totalJobs">0</p>
+  </div>
+
+  <div class="recruiter-card">
+    <h3>Active Jobs</h3>
+    <p id="activeJobs">0</p>
+  </div>
+
+  <div class="recruiter-card">
+    <h3>Total Applications</h3>
+    <p id="totalApplications">0</p>
+  </div>
+
+  <div class="recruiter-card">
+    <h3>Pending Applications</h3>
+    <p id="pendingApplications">0</p>
+  </div>
+
+  <div class="recruiter-card">
+    <h3>Shortlisted</h3>
+    <p id="shortlistedApplications">0</p>
+  </div>
+
+  <div class="recruiter-card">
+    <h3>Rejected</h3>
+    <p id="rejectedApplications">0</p>
+  </div>
+</section>
+<section class="recruiter-section analytics-section">
+  <div class="recruiter-section-head">
+    <h2>Analytics Overview</h2>
+  </div>
+
+  <div class="analytics-grid">
+    <div class="chart-card">
+      <h3>Jobs by Status</h3>
+      <canvas id="jobsStatusChart"></canvas>
+    </div>
+
+    <div class="chart-card">
+      <h3>Applications by Status</h3>
+      <canvas id="applicationsStatusChart"></canvas>
+    </div>
+  </div>
+</section>
+      <section class="recruiter-section">
+        <div class="recruiter-section-head">
+          <h2>Recent Jobs</h2>
+          <a href="manage-recruiter-jobs.html">View All</a>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="recruiter-table" id="recentJobsTable">
+            <thead>
+              <tr>
+                <th>Job Title</th>
+                <th>Department</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Posted Date</th>
+              </tr>
+            </thead>
+            <tbody id="recentJobsBody">
+              <tr>
+                <td colspan="5">Loading jobs...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="recruiter-section">
+        <div class="recruiter-section-head">
+          <h2>Recent Applications</h2>
+          <a href="recruiter-applications.html">View All</a>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="recruiter-table" id="recentApplicationsTable">
+            <thead>
+              <tr>
+                <th>Applicant Name</th>
+                <th>Job Title</th>
+                <th>Status</th>
+                <th>Applied Date</th>
+              </tr>
+            </thead>
+            <tbody id="recentApplicationsBody">
+              <tr>
+                <td colspan="4">Loading applications...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="../js/recruiter-dashboard.js"></script>
+</body>
+</html>

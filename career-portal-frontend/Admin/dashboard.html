@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard - Gradious Careers Portal</title>
+  <link rel="stylesheet" href="../css/admin-dashboard.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  
+</head>
+<body>
+
+  <div class="admin-layout">
+
+    <aside class="admin-sidebar">
+      <div class="admin-logo">
+        <img src="../images/logo.png" alt="Gradious Logo" />
+        <span>Gradious Admin</span>
+      </div>
+<nav class="admin-menu">
+
+  <a href="dashboard.html" class="active">
+    <i class="fa-solid fa-chart-line"></i> Dashboard
+  </a>
+
+  <a href="manage-users.html">
+    <i class="fa-solid fa-users"></i> Manage Users
+  </a>
+
+  <a href="manage-recruiters.html">
+    <i class="fa-solid fa-user-tie"></i> Manage Recruiters
+  </a>
+
+
+  <a href="invite-recruiter.html">
+    <i class="fa-solid fa-envelope"></i> Invite Recruiter
+  </a>
+
+
+  <a href="manage-jobs.html">
+    <i class="fa-solid fa-briefcase"></i> Manage Jobs
+  </a>
+
+  <a href="view-applications.html">
+    <i class="fa-solid fa-file-lines"></i> Applications
+  </a>
+
+</nav>
+    </aside>
+
+    <main class="admin-main">
+<header class="admin-topbar">
+  <div class="topbar-left">
+    <h1>Admin Dashboard</h1>
+    <p>Welcome back, Admin</p>
+  </div>
+
+  <div class="topbar-right">
+    <div class="notification">
+      <button type="button" class="icon-btn" onclick="toggleNotifications()">
+        <i class="bi bi-bell-fill"></i>
+        <span class="badge" id="notificationCount">0</span>
+      </button>
+
+      <div class="notification-dropdown" id="notificationDropdown">
+        <div class="dropdown-header">
+          <h4>Notifications</h4>
+          <button type="button" class="close-btn" onclick="closeNotifications(event)">×</button>
+        </div>
+
+        <ul id="notificationList">
+          <li class="no-data">No new notifications</li>
+        </ul>
+
+        <div class="dropdown-footer">
+          <button type="button" onclick="clearNotifications(event)">Clear All</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="user-profile">
+      <div class="avatar">
+        <i class="bi bi-person-fill"></i>
+      </div>
+
+      <div class="user-info">
+        <span class="name">Admin</span>
+        <span class="role">Administrator</span>
+      </div>
+
+      <div>
+        <button type="button" class="logout-btn" onclick="logout()">
+          <i class="bi bi-box-arrow-right"></i>
+          Logout
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+      <section class="admin-cards">
+        <div class="admin-card">
+          <h3>Total Users</h3>
+          <p id="totalUsers">0</p>
+        </div>
+
+        <div class="admin-card">
+          <h3>Total Recruiters</h3>
+          <p id="totalRecruiters">0</p>
+        </div>
+
+        <div class="admin-card">
+          <h3>Total Jobs</h3>
+          <p id="totalJobs">0</p>
+        </div>
+
+        <div class="admin-card">
+          <h3>Total Applications</h3>
+          <p id="totalApplications">0</p>
+        </div>
+      </section>
+
+
+<section class="admin-section charts-section">
+  <div class="admin-section-head">
+    <h2>Analytics Overview</h2>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3>Jobs by Status</h3>
+      <canvas id="jobsStatusChart"></canvas>
+    </div>
+
+    <div class="chart-card">
+      <h3>Applications by Status</h3>
+      <canvas id="applicationsStatusChart"></canvas>
+    </div>
+  </div>
+</section>
+
+
+      <section class="admin-section">
+        <div class="admin-section-head">
+          <h2>Recent Jobs</h2>
+          <a href="manage-jobs.html">View All</a>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="admin-table" id="recentJobsTable">
+            <thead>
+              <tr>
+                <th>Job Title</th>
+                <th>Department</th>
+                <th>Location</th>
+                <th>Status</th>
+                <th>Posted Date</th>
+              </tr>
+            </thead>
+            <tbody id="recentJobsBody">
+              <tr>
+                <td colspan="5">Loading jobs...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="admin-section">
+        <div class="admin-section-head">
+          <h2>Recent Users</h2>
+          <a href="manage-users.html">View All</a>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="admin-table" id="recentUsersTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="recentUsersBody">
+              <tr>
+                <td colspan="4">Loading users...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="../js/admin-dashboard.js"></script>
+</body>
+</html>

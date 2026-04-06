@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Applications - Recruiter</title>
+  <link rel="stylesheet" href="../css/recruiter-applications.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+</head>
+<body>
+
+  <div class="recruiter-layout">
+
+    <aside class="recruiter-sidebar">
+      <div class="recruiter-logo">
+        <img src="../images/logo.png" alt="Gradious Logo" />
+        <span>Recruiter Panel</span>
+      </div>
+
+      <nav class="recruiter-menu">
+        <a href="dashboard.html">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="post-job.html">
+          <i class="fa-solid fa-plus"></i>
+          <span>Post Job</span>
+        </a>
+
+        <a href="manage-recruiter-jobs.html">
+          <i class="fa-solid fa-briefcase"></i>
+          <span>Manage Jobs</span>
+        </a>
+
+        <a href="recruiter-applications.html" class="active">
+          <i class="fa-solid fa-file-lines"></i>
+          <span>Applications</span>
+        </a>
+      </nav>
+    </aside>
+
+    <main class="recruiter-main">
+
+      <div class="recruiter-topbar">
+        <div class="topbar-left">
+          <h1>Applications</h1>
+          <p>View and manage applications for your jobs</p>
+        </div>
+
+        <div class="topbar-right">
+          <div class="notification">
+            <button type="button" class="icon-btn">
+              <i class="fa-solid fa-bell"></i>
+              <span class="badge">0</span>
+            </button>
+          </div>
+
+          <div class="user-profile">
+            <div class="avatar">
+              <i class="fa-solid fa-user"></i>
+            </div>
+
+            <div class="user-info">
+              <span class="name">Recruiter</span>
+              <span class="role">Recruiter Panel</span>
+            </div>
+
+            <button class="logout-btn" onclick="recruiterLogout()">
+              <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <section class="applications-section">
+        <div class="applications-head">
+          <input
+            type="text"
+            id="applicationSearch"
+            placeholder="Search applicant or job title"
+            onkeyup="searchApplications()"
+          />
+        </div>
+
+        <div class="table-wrapper">
+          <table class="applications-table">
+            <thead>
+              <tr>
+                <th>Applicant Name</th>
+                <th>Job Title</th>
+                <th>Status</th>
+                <th>Applied Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody id="applicationsTableBody">
+              <tr>
+                <td colspan="5">Loading applications...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </main>
+  </div>
+<!-- VIEW APPLICATION MODAL -->
+<!-- VIEW APPLICATION MODAL -->
+<div id="viewApplicationModal" class="modal-overlay" onclick="handleApplicationOverlay(event)">
+  <div class="view-modal application-view-modal">
+    <div class="view-modal-header">
+      <h2>Application Details</h2>
+      <button class="close-modal-btn" onclick="closeApplicationModal()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="view-modal-body">
+      <div class="detail-grid">
+        <div class="detail-card">
+          <label>Applicant Name</label>
+          <p id="appName">-</p>
+        </div>
+
+        <div class="detail-card">
+          <label>Job Title</label>
+          <p id="appJob">-</p>
+        </div>
+
+        <div class="detail-card">
+          <label>Status</label>
+          <p id="appStatus">-</p>
+        </div>
+
+        <div class="detail-card">
+          <label>Applied Date</label>
+          <p id="appDate">-</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+  <script src="../js/recruiter-applications.js"></script>
+</body>
+</html>

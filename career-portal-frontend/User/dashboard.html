@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>User Dashboard - Gradious Careers Portal</title>
+
+  <link rel="stylesheet" href="../css/user-dashboard.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<div class="user-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="user-sidebar">
+    <div class="user-logo">
+      <img src="../images/logo.png" alt="Gradious Logo" />
+      <span>User Panel</span>
+    </div>
+
+    <nav class="user-menu">
+      <a href="dashboard.html" class="active">
+        <i class="fa-solid fa-chart-line"></i>
+        <span>Dashboard</span>
+      </a>
+
+      <a href="view-jobs.html">
+        <i class="fa-solid fa-briefcase"></i>
+        <span>View Jobs</span>
+      </a>
+
+      <a href="my-applications.html">
+        <i class="fa-solid fa-file-lines"></i>
+        <span>My Applications</span>
+      </a>
+    </nav>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="user-main">
+
+    <!-- TOPBAR -->
+    <div class="user-topbar">
+      <div class="topbar-left">
+        <h1>User Dashboard</h1>
+        <p>Track your jobs, applications, and status updates here.</p>
+      </div>
+
+      <div class="topbar-right">
+        <div class="notification-box">
+          <i class="fa-solid fa-bell"></i>
+          <span class="notification-count" id="notificationCount">0</span>
+        </div>
+
+        <div class="user-profile-box">
+          <div class="user-profile-icon">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <div class="user-profile-info">
+            <h4 id="profileUserName">User</h4>
+            <p>Job Seeker</p>
+          </div>
+        </div>
+
+        <button class="logout-btn" onclick="userLogout()">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          Logout
+        </button>
+      </div>
+    </div>
+
+    <!-- CARDS -->
+    <section class="user-cards">
+
+      <div class="user-card">
+        <h3>Total Jobs Available</h3>
+        <h2 id="totalJobs">0</h2>
+      </div>
+
+      <div class="user-card">
+        <h3>Jobs Applied</h3>
+        <h2 id="jobsApplied">0</h2>
+      </div>
+
+      <div class="user-card">
+        <h3>Shortlisted</h3>
+        <h2 id="shortlistedJobs">0</h2>
+      </div>
+
+      <div class="user-card">
+        <h3>Rejected</h3>
+        <h2 id="rejectedJobs">0</h2>
+      </div>
+
+    </section>
+
+    <!-- ANALYTICS -->
+    <section class="user-section analytics-section">
+      <div class="user-section-head">
+        <h2>Analytics Overview</h2>
+      </div>
+
+      <div class="charts-grid">
+
+        <div class="chart-card">
+          <h3>Applications by Status</h3>
+          <canvas id="applicationsChart"></canvas>
+        </div>
+
+        <div class="chart-card">
+          <h3>Jobs by Department</h3>
+          <canvas id="departmentsChart"></canvas>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- LATEST JOBS -->
+    <section class="user-section">
+      <div class="user-section-head">
+        <h2>Latest Jobs</h2>
+        <a href="view-jobs.html">View All</a>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th>Job Title</th>
+              <th>Department</th>
+              <th>Location</th>
+              <th>Experience</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="latestJobsBody">
+            <tr>
+              <td colspan="5">Loading jobs...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+</div>
+
+<script src="../js/user-dashboard.js"></script>
+
+</body>
+</html>

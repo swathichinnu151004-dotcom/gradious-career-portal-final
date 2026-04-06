@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Manage Jobs - Gradious Admin</title>
+  <link rel="stylesheet" href="../css/manage-jobs.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+</head>
+<body>
+
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="admin-logo">
+        <img src="../images/logo.png" alt="Gradious Logo" />
+        <span>Gradious Admin</span>
+      </div>
+
+      <nav class="admin-menu">
+        <a href="dashboard.html">
+          <i class="fa-solid fa-chart-line"></i> Dashboard
+        </a>
+
+        <a href="manage-users.html">
+          <i class="fa-solid fa-users"></i> Manage Users
+        </a>
+
+        <a href="manage-recruiters.html">
+          <i class="fa-solid fa-user-tie"></i> Manage Recruiters
+        </a>
+
+        <a href="invite-recruiter.html">
+          <i class="fa-solid fa-envelope"></i> Invite Recruiter
+        </a>
+
+        <a href="manage-jobs.html" class="active">
+          <i class="fa-solid fa-briefcase"></i> Manage Jobs
+        </a>
+
+        <a href="view-applications.html">
+          <i class="fa-solid fa-file-lines"></i> Applications
+        </a>
+      </nav>
+    </aside>
+
+    <main class="admin-main">
+      <header class="admin-topbar">
+        <div class="topbar-left">
+          <h1>Manage Jobs</h1>
+          <p>View, search, update status, and delete jobs</p>
+        </div>
+
+        <div class="topbar-right">
+          <div class="notification">
+            <button type="button" class="icon-btn" onclick="toggleNotifications()">
+              <i class="bi bi-bell-fill"></i>
+              <span class="badge" id="notificationCount">0</span>
+            </button>
+
+            <div class="notification-dropdown" id="notificationDropdown">
+              <div class="dropdown-header">
+                <h4>Notifications</h4>
+                <button type="button" class="close-btn" onclick="closeNotifications(event)">×</button>
+              </div>
+
+              <ul id="notificationList">
+                <li class="no-data">No new notifications</li>
+              </ul>
+
+              <div class="dropdown-footer">
+                <button type="button" onclick="clearNotifications(event)">Clear All</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="user-profile">
+            <div class="avatar">
+              <i class="bi bi-person-fill"></i>
+            </div>
+
+            <div class="user-info">
+              <span class="name">Admin</span>
+              <span class="role">Administrator</span>
+            </div>
+
+            <div>
+              <button type="button" class="logout-btn" onclick="logout()">
+                <i class="bi bi-box-arrow-right"></i>
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="admin-section">
+        <div class="jobs-toolbar">
+          <div></div>
+
+          <div class="search-box">
+            <input
+              type="text"
+              id="jobSearch"
+              placeholder="Search by job title, department, or location"
+              onkeyup="searchJobs()"
+            />
+          </div>
+        </div>
+
+        <div class="table-wrapper">
+          <table class="admin-table" id="jobsTable">
+            <thead>
+              <tr>
+                <th>Job Title</th>
+                <th>Department</th>
+                <th>Location</th>
+                <th>Experience</th>
+                <th>Status</th>
+                <th>Posted Date</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+
+            <tbody id="jobsTableBody">
+              <tr>
+                <td colspan="7">Loading jobs...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Job Details Sidebar -->
+  <div class="job-sidebar-overlay" id="jobSidebarOverlay" onclick="closeJobSidebar()"></div>
+
+  <div class="job-sidebar" id="jobSidebar">
+    <div class="job-sidebar-header">
+      <h2>Job Details</h2>
+      <button class="close-sidebar-btn" onclick="closeJobSidebar()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="job-sidebar-body">
+      <div class="detail-item">
+        <span>Job Title</span>
+        <p id="detailJobTitle">-</p>
+      </div>
+
+      <div class="detail-item">
+        <span>Department</span>
+        <p id="detailDepartment">-</p>
+      </div>
+
+      <div class="detail-item">
+        <span>Location</span>
+        <p id="detailLocation">-</p>
+      </div>
+
+      <div class="detail-item">
+        <span>Experience</span>
+        <p id="detailExperience">-</p>
+      </div>
+
+      <div class="detail-item">
+        <span>Status</span>
+        <p id="detailStatus">-</p>
+      </div>
+
+      <div class="detail-item">
+        <span>Posted Date</span>
+        <p id="detailPostedDate">-</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Status Modal -->
+  <div class="update-modal-overlay" id="updateModalOverlay">
+    <div class="update-modal">
+      <h3>Update Job Status</h3>
+      <p>Select new status for this job</p>
+
+      <select id="jobStatusSelect">
+        <option value="ACTIVE">ACTIVE</option>
+        <option value="INACTIVE">INACTIVE</option>
+      </select>
+
+      <div class="update-modal-actions">
+        <button class="cancel-update-btn" onclick="closeUpdateModal()">Cancel</button>
+        <button class="confirm-update-btn" onclick="confirmUpdateJobStatus()">Update</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="delete-modal-overlay" id="deleteModalOverlay">
+    <div class="delete-modal">
+      <div class="delete-modal-icon">
+        <i class="fa-solid fa-trash"></i>
+      </div>
+
+      <h3>Delete Job</h3>
+      <p>Are you sure you want to delete this job? This action cannot be undone.</p>
+
+      <div class="delete-modal-actions">
+        <button class="cancel-delete-btn" onclick="closeDeleteModal()">Cancel</button>
+        <button class="confirm-delete-btn" onclick="confirmDeleteJob()">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Undo Toast -->
+  <div class="undo-toast" id="undoToast">
+    <span id="undoMessage">Job deleted successfully</span>
+    <button onclick="undoDeleteJob()">Undo</button>
+  </div>
+
+  <script src="../js/manage-jobs.js"></script>
+</body>
+</html>

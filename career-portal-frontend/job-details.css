@@ -1,0 +1,106 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: #f4f7fb;
+}
+
+.container {
+  width: 90%;
+  max-width: 900px;
+  margin: auto;
+}
+
+.job-details-section {
+  padding: 60px 0;
+}
+
+.job-details-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 35px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.job-details-card h2 {
+  font-size: 32px;
+  color: #173b7a;
+  margin-bottom: 20px;
+}
+
+.job-details-card p {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
+
+#jobDescription {
+  color: #555;
+}
+
+.job-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 25px;
+}
+
+.back-btn,
+.apply-btn {
+  text-decoration: none;
+  border: none;
+  padding: 12px 22px;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.back-btn {
+  background: #ddd;
+  color: #222;
+}
+
+.apply-btn {
+  background: #2f5bea;
+  color: #fff;
+}
+
+.apply-btn:hover {
+  background: #2348c7;
+}
+#toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  min-width: 220px;
+  padding: 12px 18px;
+  border-radius: 8px;
+  color: white;
+  font-size: 15px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-20px);
+  transition: all 0.3s ease;
+  z-index: 9999;
+}
+
+#toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+#toast.show.success {
+  background: #28a745;
+}
+
+#toast.show.error {
+  background: #dc3545;
+}
+
+#toast.show.warning {
+  background: #ff9800;
+}

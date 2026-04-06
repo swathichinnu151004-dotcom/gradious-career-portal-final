@@ -1,0 +1,691 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: #f4f7fb;
+  color: #1e293b;
+}
+
+.admin-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.admin-sidebar {
+  width: 260px;
+  background: #0f2244;
+  color: #fff;
+  padding: 24px 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 35px;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.admin-logo img {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+}
+
+.admin-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-menu a {
+  color: #d9e4ff;
+  text-decoration: none;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 15px;
+  transition: 0.3s;
+}
+
+.admin-menu a i {
+  margin-right: 10px;
+  width: 20px;
+}
+
+.admin-menu a:hover,
+.admin-menu a.active {
+  background: #2f62e8;
+  color: #fff;
+}
+
+.admin-main {
+  flex: 1;
+  padding: 30px;
+}
+
+.admin-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.topbar-left h1 {
+  font-size: 32px;
+  color: #1c2d5a;
+  margin-bottom: 6px;
+}
+
+.topbar-left p {
+  color: #5f6f87;
+  font-size: 15px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.notification {
+  position: relative;
+}
+
+.icon-btn {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  border: 1px solid #dbe3f0;
+  background: #f8fafc;
+  border-radius: 16px;
+  cursor: pointer;
+  color: #2f62e8;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn .badge {
+  position: absolute;
+  top: 6px;
+  right: 7px;
+  min-width: 18px;
+  height: 18px;
+  background: #ef4444;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+}
+
+.notification-dropdown {
+  position: absolute;
+  top: 66px;
+  right: 0;
+  width: 320px;
+  background: #fff;
+  border: 1px solid #e5eaf3;
+  border-radius: 16px;
+  box-shadow: 0 16px 32px rgba(15, 23, 42, 0.12);
+  display: none;
+  z-index: 1200;
+  overflow: hidden;
+}
+
+.dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 18px;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.dropdown-header h4 {
+  margin: 0;
+  font-size: 16px;
+  color: #16325c;
+}
+
+.close-btn {
+  border: none;
+  background: none;
+  font-size: 22px;
+  color: #64748b;
+  cursor: pointer;
+}
+
+#notificationList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+#notificationList li {
+  padding: 12px 18px;
+  font-size: 14px;
+  color: #334155;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+#notificationList li:last-child {
+  border-bottom: none;
+}
+
+#notificationList li.no-data {
+  text-align: center;
+  color: #6b7280;
+}
+
+.dropdown-footer {
+  padding: 12px 18px;
+  border-top: 1px solid #eef2f7;
+  text-align: right;
+}
+
+.dropdown-footer button {
+  border: none;
+  background: none;
+  color: #2f62e8;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #f8fafc;
+  border: 1px solid #dbe3f0;
+  padding: 12px 18px;
+  border-radius: 18px;
+}
+
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #2f62e8;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.user-info .name {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1c2d5a;
+}
+
+.user-info .role {
+  font-size: 13px;
+  color: #64748b;
+}
+
+.logout-btn {
+  background: #ff5a4f;
+  color: #fff;
+  border: none;
+  padding: 14px 20px;
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 18px rgba(255, 90, 79, 0.22);
+}
+
+.logout-btn:hover {
+  background: #ef4444;
+}
+
+.admin-section {
+  background: #fff;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+  min-width: 500px;
+}
+
+.manage-recruiters-head {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 22px;
+}
+
+.manage-recruiters-head input {
+  width: 380px;
+  max-width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #cfd8ea;
+  border-radius: 14px;
+  font-size: 15px;
+  outline: none;
+}
+
+.manage-recruiters-head input:focus {
+  border-color: #2f62e8;
+  box-shadow: 0 0 0 3px rgba(47, 98, 232, 0.12);
+}
+
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table thead {
+  background: #f2f5fb;
+}
+
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  padding: 18px 14px;
+  border-bottom: 1px solid #e7edf7;
+  font-size: 15px;
+}
+
+.admin-table th {
+  color: #16325c;
+  font-weight: 700;
+}
+
+.admin-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-badge.active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-badge.blocked {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.view-btn,
+.block-btn,
+.unblock-btn,
+.delete-btn {
+  border: none;
+  padding: 7px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: 0.2s;
+}
+
+.view-btn {
+  background: #eef4ff;
+  color: #2563eb;
+}
+
+.view-btn:hover {
+  background: #2563eb;
+  color: #fff;
+}
+
+.block-btn {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+.block-btn:hover {
+  background: #f97316;
+  color: #fff;
+}
+
+.unblock-btn {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.unblock-btn:hover {
+  background: #10b981;
+  color: #fff;
+}
+
+.delete-btn {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.delete-btn:hover {
+  background: #dc2626;
+  color: #fff;
+}
+
+/* Overlay */
+.recruiter-sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 1000;
+  display: none;
+}
+
+.recruiter-sidebar-overlay.active {
+  display: block;
+}
+
+/* Sidebar (MATCH MANAGE USERS) */
+.recruiter-sidebar {
+  position: fixed;
+  top: 0;
+  right: -620px;   /* same slide distance */
+  width: 600px;    /* ✅ SAME as manage-users */
+  height: 100vh;
+  background: #ffffff;
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+  z-index: 1001;
+  transition: right 0.35s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.recruiter-sidebar.active {
+  right: 0;
+}
+
+/* Header */
+.recruiter-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 22px 24px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+}
+
+.recruiter-sidebar-header h2 {
+  margin: 0;
+  font-size: 26px;   /* ✅ same size */
+  color: #173b82;
+}
+
+/* Close button */
+.close-sidebar-btn {
+  border: none;
+  background: #eef2ff;
+  color: #173b82;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.close-sidebar-btn:hover {
+  background: #dbeafe;
+}
+
+/* Body */
+.recruiter-sidebar-body {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+/* Detail card (SAME AS USERS) */
+.detail-item {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.detail-item span {
+  display: block;
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 8px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.detail-item p {
+  margin: 0;
+  font-size: 18px;
+  color: #111827;
+  font-weight: 500;
+}
+.delete-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1200;
+}
+
+.delete-modal-overlay.active {
+  display: flex;
+}
+
+.delete-modal {
+  width: 420px;
+  max-width: 90%;
+  background: #fff;
+  border-radius: 18px;
+  padding: 30px 28px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+  animation: modalPop 0.25s ease;
+}
+
+@keyframes modalPop {
+  from {
+    transform: scale(0.92);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.delete-modal-icon {
+  width: 70px;
+  height: 70px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  background: #fee2e2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.delete-modal-icon i {
+  font-size: 28px;
+  color: #dc2626;
+}
+
+.delete-modal h3 {
+  margin: 0 0 10px;
+  font-size: 26px;
+  color: #173b82;
+}
+
+.delete-modal p {
+  margin: 0 0 24px;
+  font-size: 15px;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.delete-modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+
+.cancel-delete-btn,
+.confirm-delete-btn {
+  min-width: 120px;
+  height: 44px;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cancel-delete-btn {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.confirm-delete-btn {
+  background: #ef4444;
+  color: white;
+}
+
+.cancel-delete-btn:hover {
+  background: #d1d5db;
+}
+
+.confirm-delete-btn:hover {
+  background: #dc2626;
+}
+.undo-toast {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  background: #1e293b;
+  color: #fff;
+  padding: 16px 20px;
+  border-radius: 16px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 320px;
+  max-width: 420px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px);
+  transition: all 0.3s ease;
+  z-index: 1200;
+}
+
+.undo-toast.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.undo-toast button {
+  border: none;
+  background: #facc15;
+  color: #111827;
+  padding: 10px 16px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.undo-toast button:hover {
+  background: #eab308;
+}
+
+@media (max-width: 1000px) {
+  .admin-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .topbar-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 850px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+
+  .admin-sidebar {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .recruiter-sidebar {
+    width: 100%;
+    right: -100%;
+  }
+
+  .topbar-right {
+    flex-wrap: wrap;
+  }
+
+  .user-profile {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 600px) {
+  .admin-main {
+    padding: 18px;
+  }
+
+  .topbar-left h1 {
+    font-size: 26px;
+  }
+
+  .manage-recruiters-head input {
+    width: 100%;
+  }
+}
