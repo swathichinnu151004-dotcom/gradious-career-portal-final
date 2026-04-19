@@ -1,0 +1,200 @@
+.manage-recruiters-page {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 18px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.07);
+}
+
+/* SEARCH */
+.manage-recruiters-head {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.manage-recruiters-head input {
+  width: 380px;
+  max-width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #cfd8ea;
+  border-radius: 14px;
+  font-size: 15px;
+  outline: none;
+}
+
+.manage-recruiters-head input:focus {
+  border-color: #2f62e8;
+  box-shadow: 0 0 0 3px rgba(47, 98, 232, 0.12);
+}
+
+/* TABLE */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-table thead {
+  background: #f2f5fb;
+}
+
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  padding: 18px 14px;
+  border-bottom: 1px solid #e7edf7;
+  font-size: 15px;
+}
+
+.admin-table th {
+  color: #16325c;
+  font-weight: 700;
+}
+
+.admin-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+/* STATUS */
+.status-badge {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.status-badge.active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.status-badge.blocked {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Row actions: shared TableIconActionButton */
+
+/* ===================== */
+/* VIEW SIDEBAR */
+/* ===================== */
+
+.recruiter-sidebar {
+  position: fixed;
+  top: 0;
+  right: -600px;
+  width: 520px;
+  height: 100vh;
+  background: #ffffff;
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.12);
+  transition: 0.3s;
+  padding: 24px;
+  z-index: 1000;
+}
+
+.recruiter-sidebar.active {
+  right: 0;
+}
+
+.recruiter-sidebar h3 {
+  font-size: 22px;
+  margin-bottom: 20px;
+  color: #173b82;
+}
+
+.recruiter-sidebar p {
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+
+/* ===================== */
+/* DELETE MODAL */
+/* ===================== */
+
+.delete-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10060;
+  box-sizing: border-box;
+  background: rgba(15, 23, 42, 0.45);
+  display: none;
+  align-items: flex-start;
+  justify-content: center;
+  padding: max(16px, env(safe-area-inset-top, 0px))
+    max(16px, env(safe-area-inset-right, 0px))
+    max(16px, env(safe-area-inset-bottom, 0px))
+    max(16px, env(safe-area-inset-left, 0px));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.delete-modal-overlay.active {
+  display: flex;
+}
+
+.delete-modal {
+  width: min(420px, calc(100vw - 32px));
+  margin: max(24px, 5vh) auto 24px;
+  background: #fff;
+  border-radius: 18px;
+  padding: 28px;
+  text-align: center;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+}
+
+.delete-modal h3 {
+  font-size: 24px;
+  margin-bottom: 10px;
+  color: #173b82;
+}
+
+.delete-modal p {
+  font-size: 14px;
+  margin-bottom: 20px;
+  color: #555;
+}
+
+.delete-modal button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 10px;
+  margin: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* CANCEL */
+.delete-modal button:first-child {
+  background: #e5e7eb;
+}
+
+/* DELETE */
+.delete-modal button:last-child {
+  background: #ef4444;
+  color: #fff;
+}
+
+/* ===================== */
+/* RESPONSIVE */
+/* ===================== */
+
+@media (max-width: 768px) {
+  .recruiter-sidebar {
+    width: 100%;
+    right: -100%;
+  }
+
+  .manage-recruiters-head input {
+    width: 100%;
+  }
+}
+
+/* STATUS (used inside shared DetailDrawer fields) */
+.status-highlight {
+  color: #16a34a;
+  font-weight: 700;
+  margin: 0;
+}

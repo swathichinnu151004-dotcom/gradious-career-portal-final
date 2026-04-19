@@ -5,17 +5,33 @@ const verifyToken = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 const recruiterController = require("../controllers/recruiterController");
 
+
 // ===============================
 // Public recruiter invite routes
 // ===============================
 router.get("/validate-invite", recruiterController.validateInviteToken);
-router.post("/complete-signup", recruiterController.completeRecruiterSignup);
+router.post("/register-recruiter", recruiterController.completeRecruiterSignup);
 
 // ===============================
 // Recruiter profile
 // ===============================
-router.get("/profile", verifyToken, roleMiddleware("recruiter"), recruiterController.getProfile);
-router.put("/profile", verifyToken, roleMiddleware("recruiter"), recruiterController.updateProfile);
+// ================= Recruiter Profile =================
+
+// GET recruiter profile
+router.get(
+  "/profile",
+  verifyToken,
+  roleMiddleware("recruiter"),
+  recruiterController.getRecruiterProfile
+);
+
+// UPDATE recruiter profile
+router.put(
+  "/profile",
+  verifyToken,
+  roleMiddleware("recruiter"),
+  recruiterController.updateProfile
+);
 
 // ===============================
 // Recruiter dashboard

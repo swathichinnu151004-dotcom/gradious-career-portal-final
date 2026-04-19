@@ -1,46 +1,71 @@
 const nodemailer = require("nodemailer");
+const logger = require("./logger");
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+let cachedTransporter = null;
+
+function getTransporter() {
+  const user = (process.env.EMAIL_USER || "").trim();
+  const pass = (process.env.EMAIL_PASS || "").trim();
+
+  if (!user || !pass) {
+    throw new Error(
+      "Email is not configured: set EMAIL_USER and EMAIL_PASS in career-portal-backend/.env (use a Gmail App Password for EMAIL_PASS)."
+    );
   }
-});
 
-const sendRecruiterInviteMail = async (email, token) => {
+  if (!cachedTransporter) {
+    cachedTransporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: { user, pass },
+    });
+  }
+
+  return cachedTransporter;
+}
+
+const sendMail = async ({ to, subject, text, html, from }) => {
+  if (!to) {
+    throw new Error("Recipient email is missing");
+  }
+
+  const authUser = (process.env.EMAIL_USER || "").trim();
+  const displayName =
+    process.env.MAIL_FROM_DISPLAY || "Gradious Careers (Do not reply)";
+  const defaultFrom = authUser
+    ? `"${displayName}" <${authUser}>`
+    : `"${displayName}" <noreply@localhost>`;
+
+  const mailOptions = {
+    from: from || defaultFrom,
+    to,
+    subject,
+    text,
+    html,
+  };
+
+  const transporter = getTransporter();
+  const info = await transporter.sendMail(mailOptions);
+  logger.info("Email dispatched", {
+    subject,
+    messageId: info.messageId,
+    response: info.response,
+  });
+  return info;
+};
+
+/** Logs whether Gmail SMTP auth works (call once at server startup). */
+sendMail.verifySmtpConfig = async function verifySmtpConfig() {
   try {
-    console.log("Email:", email);
-    console.log("Token:", token);
-
-    if (!email) {
-      throw new Error("Email is missing");
-    }
-
-    const frontendUrl = process.env.FRONTEND_URL.trim();
-
-    const inviteLink = `${frontendUrl}/Recruiter/recruiter-signup.html?token=${token}`;
-
-    console.log("Invite Link:", inviteLink);
-
-    const mailOptions = {
-      from: `"Gradious Careers Portal" <${process.env.EMAIL_USER}>`,
-      to: email, // ✅ MUST
-      subject: "Recruiter Invitation",
-      html: `
-        <h2>You're invited!</h2>
-        <p>Click below to register:</p>
-        <a href="${inviteLink}">Register</a>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
-
-    console.log("Email sent successfully");
-
-  } catch (error) {
-    console.error("Error sending recruiter invite email:", error);
+    await getTransporter().verify();
+    logger.info("SMTP verify OK (smtp.gmail.com:465)");
+  } catch (e) {
+    logger.error(
+      "SMTP verify failed — outbound email disabled until credentials are fixed:",
+      e.message
+    );
   }
 };
 
-module.exports = sendRecruiterInviteMail;
+module.exports = sendMail;

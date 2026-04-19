@@ -1,7 +1,8 @@
 const db = require("../config/connectDB");
+const logger = require("../utils/logger");
 const crypto = require("crypto");
-const sendRecruiterInviteMail = require("../utils/sendMail");
-const createNotification = require("../utils/createNotification");
+const sendEmail = require("../utils/sendMail");
+const { onApplicationStatusForUser } = require("../services/notificationService");
 
 exports.resendInvite = async (req, res) => {
   try {
@@ -32,11 +33,21 @@ exports.resendInvite = async (req, res) => {
       [newToken, newExpiry, id]
     );
 
-    await sendRecruiterInviteMail(invite.email, newToken);
+    const inviteLink = `${process.env.FRONTEND_URL}/recruiter-signup?token=${newToken}`;
+
+    await sendEmail({
+      to: invite.email,
+      subject: "Recruiter Invitation - Gradious Careers Portal",
+      html: `
+        <h2>Recruiter Invitation</h2>
+        <p>You have been invited as a recruiter.</p>
+        <a href="${inviteLink}">Complete Signup</a>
+      `
+    });
 
     return res.status(200).json({ message: "Invite resent successfully" });
   } catch (error) {
-    console.error("Resend invite error:", error);
+    logger.error("Resend invite error:", error);
     return res.status(500).json({ message: "Server error while resending invite" });
   }
 };
@@ -52,42 +63,54 @@ exports.inviteRecruiter = async (req, res) => {
 
     const recruiterEmail = email.trim().toLowerCase();
 
-    const token = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-    const [existingInvites] = await db.query(
-      "SELECT id, status FROM recruiter_invites WHERE email = ? ORDER BY id DESC LIMIT 1",
+    const [existingRecruiter] = await db.query(
+      "SELECT id FROM recruiters WHERE email = ?",
       [recruiterEmail]
     );
 
-    if (existingInvites.length > 0) {
-      const invite = existingInvites[0];
-
-      if (invite.status === "Pending") {
-        return res.status(400).json({ message: "Invite already sent to this email" });
-      }
-
-      // Accepted or old invite -> generate new token and reopen invite
-      await db.query(
-        `UPDATE recruiter_invites
-         SET token = ?, status = 'Pending', expires_at = ?, created_at = NOW()
-         WHERE id = ?`,
-        [token, expiresAt, invite.id]
-      );
-    } else {
-      await db.query(
-        `INSERT INTO recruiter_invites (email, token, status, expires_at)
-         VALUES (?, ?, 'Pending', ?)`,
-        [recruiterEmail, token, expiresAt]
-      );
+    if (existingRecruiter.length > 0) {
+      return res.status(400).json({ message: "Recruiter already exists" });
     }
 
-    await sendRecruiterInviteMail(recruiterEmail, token);
+    const [existingInvite] = await db.query(
+      "SELECT id, status FROM recruiter_invites WHERE email = ?",
+      [recruiterEmail]
+    );
 
-    return res.status(200).json({ message: "Recruiter invite sent successfully" });
+    if (existingInvite.length > 0) {
+      return res.status(400).json({
+        message: "Invite already exists for this email"
+      });
+    }
+
+    const token = require("crypto").randomBytes(32).toString("hex");
+
+    await db.query(
+      `INSERT INTO recruiter_invites (email, token, status, expires_at)
+       VALUES (?, ?, 'Pending', DATE_ADD(NOW(), INTERVAL 24 HOUR))`,
+      [recruiterEmail, token]
+    );
+
+    const inviteLink = `${process.env.FRONTEND_URL}/recruiter-signup?token=${token}`;
+
+    await sendEmail({
+      to: recruiterEmail,
+      subject: "Recruiter Invitation - Gradious Careers Portal",
+      html: `
+        <h2>Recruiter Invitation</h2>
+        <p>You have been invited as a recruiter.</p>
+        <a href="${inviteLink}">Complete Signup</a>
+      `
+    });
+
+    return res.status(200).json({
+      message: "Recruiter invite sent successfully"
+    });
   } catch (error) {
-    console.error("Invite recruiter error:", error);
-    return res.status(500).json({ message: "Server error while sending invite" });
+    logger.error("Invite recruiter error:", error);
+    return res.status(500).json({
+      message: error.message || "Error sending invite"
+    });
   }
 };
 exports.cancelInvite = async (req, res) => {
@@ -111,7 +134,7 @@ exports.cancelInvite = async (req, res) => {
       message: "Invite cancelled successfully"
     });
   } catch (error) {
-    console.error("Cancel invite error:", error);
+    logger.error("Cancel invite error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -127,7 +150,7 @@ exports.getRecruiterInvites = async (req, res) => {
 
     return res.status(200).json(results);
   } catch (error) {
-    console.error("Fetch invites error:", error);
+    logger.error("Fetch invites error:", error);
     return res.status(500).json({ message: "Error fetching recruiter invites" });
   }
 };
@@ -188,7 +211,7 @@ exports.getDashboardSummary = async (req, res) => {
       pendingCount: pendingRows[0].pendingCount || 0
     });
   } catch (error) {
-    console.error("Dashboard summary error:", error);
+    logger.error("Dashboard summary error:", error);
     return res.status(500).json({ message: "Server error" });
   }
 };
@@ -203,7 +226,7 @@ exports.getAllUsers = async (req, res) => {
 
     return res.json(result);
   } catch (err) {
-    console.error("Get all users error:", err);
+    logger.error("Get all users error:", err);
     return res.status(500).json({ message: "Error fetching users" });
   }
 };
@@ -224,7 +247,7 @@ exports.getUserById = async (req, res) => {
 
     return res.json(result[0]);
   } catch (err) {
-    console.error("Get user by id error:", err);
+    logger.error("Get user by id error:", err);
     return res.status(500).json({ message: "Error fetching user details" });
   }
 };
@@ -241,7 +264,7 @@ exports.updateUserStatus = async (req, res) => {
 
     return res.json({ message: "User status updated successfully" });
   } catch (err) {
-    console.error("Update user status error:", err);
+    logger.error("Update user status error:", err);
     return res.status(500).json({ message: "Error updating user status" });
   }
 };
@@ -257,7 +280,7 @@ exports.deleteUser = async (req, res) => {
 
     return res.json({ message: "User deleted successfully" });
   } catch (err) {
-    console.error("Delete user error:", err);
+    logger.error("Delete user error:", err);
     return res.status(500).json({ message: "Error deleting user" });
   }
 };
@@ -272,7 +295,7 @@ exports.getAllRecruiters = async (req, res) => {
 
     return res.json(result);
   } catch (err) {
-    console.error("Get all recruiters error:", err);
+    logger.error("Get all recruiters error:", err);
     return res.status(500).json({ message: "Error fetching recruiters" });
   }
 };
@@ -294,7 +317,7 @@ exports.getRecruiterById = async (req, res) => {
 
     return res.json(result[0]);
   } catch (err) {
-    console.error("Get recruiter by id error:", err);
+    logger.error("Get recruiter by id error:", err);
     return res.status(500).json({ message: "Error fetching recruiter details" });
   }
 };
@@ -315,7 +338,7 @@ exports.updateRecruiterStatus = async (req, res) => {
 
     return res.json({ message: "Recruiter status updated successfully" });
   } catch (err) {
-    console.error("Update recruiter status error:", err);
+    logger.error("Update recruiter status error:", err);
     return res.status(500).json({ message: "Error updating recruiter status" });
   }
 };
@@ -334,7 +357,7 @@ exports.deleteRecruiter = async (req, res) => {
 
     return res.json({ message: "Recruiter deleted successfully" });
   } catch (err) {
-    console.error("Delete recruiter error:", err);
+    logger.error("Delete recruiter error:", err);
     return res.status(500).json({ message: "Error deleting recruiter" });
   }
 };
@@ -348,7 +371,7 @@ exports.getAllJobsForAdmin = async (req, res) => {
 
     return res.json(results);
   } catch (err) {
-    console.error("Get all jobs for admin error:", err);
+    logger.error("Get all jobs for admin error:", err);
     return res.status(500).json({ message: "Error fetching jobs" });
   }
 };
@@ -368,7 +391,7 @@ exports.getJobByIdForAdmin = async (req, res) => {
 
     return res.json(results[0]);
   } catch (err) {
-    console.error("Get job by id for admin error:", err);
+    logger.error("Get job by id for admin error:", err);
     return res.status(500).json({ message: "Error fetching job details" });
   }
 };
@@ -387,7 +410,7 @@ exports.updateJobByAdmin = async (req, res) => {
 
     return res.json({ message: "Job updated successfully" });
   } catch (err) {
-    console.error("Update job by admin error:", err);
+    logger.error("Update job by admin error:", err);
     return res.status(500).json({ message: "Error updating job" });
   }
 };
@@ -403,7 +426,7 @@ exports.deleteJobByAdmin = async (req, res) => {
 
     return res.json({ message: "Job deleted successfully" });
   } catch (err) {
-    console.error("Delete job by admin error:", err);
+    logger.error("Delete job by admin error:", err);
     return res.status(500).json({ message: "Error deleting job" });
   }
 };
@@ -419,7 +442,7 @@ exports.getLatestJobs = async (req, res) => {
 
     return res.json(results);
   } catch (err) {
-    console.error("Error fetching latest jobs:", err);
+    logger.error("Error fetching latest jobs:", err);
     return res.status(500).json({ message: "Error fetching latest jobs" });
   }
 };
@@ -443,7 +466,7 @@ exports.getAllApplications = async (req, res) => {
     const [rows] = await db.query(query);
     res.json(rows);
   } catch (error) {
-    console.error("getAllApplications error:", error);
+    logger.error("getAllApplications error:", error);
     res.status(500).json({ message: "Error fetching applications" });
   }
 };
@@ -471,7 +494,7 @@ exports.getApplicationById = async (req, res) => {
 
     return res.json(results[0]);
   } catch (err) {
-    console.error("Get application by id error:", err);
+    logger.error("Get application by id error:", err);
     return res.status(500).json({ message: "Error fetching application details" });
   }
 };
@@ -552,24 +575,12 @@ exports.updateApplicationStatus = async (req, res) => {
       [status, id]
     );
 
-    let message = "";
-    let type = "info";
-
-    if (status === "Shortlisted") {
-      message = `Your application for ${rows[0].job_title} has been shortlisted.`;
-      type = "success";
-    } else if (status === "Rejected") {
-      message = `Your application for ${rows[0].job_title} has been rejected.`;
-      type = "danger";
-    }
-
-    await createNotification({
+    await onApplicationStatusForUser({
       userId: rows[0].user_id,
-      title: "Application Update",
-      message,
-      type,
-      relatedId: Number(id),
-      relatedType: "application"
+      jobTitle: rows[0].job_title,
+      status,
+      applicationId: Number(id),
+      senderId: req.user.id,
     });
 
     return res.status(200).json({
@@ -577,10 +588,106 @@ exports.updateApplicationStatus = async (req, res) => {
       message: `Application status updated to ${status} successfully`
     });
   } catch (error) {
-    console.error("Error updating application status:", error);
+    logger.error("Error updating application status:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error"
+    });
+  }
+};
+exports.deleteInvite = async (req, res) => {
+  try {
+    const inviteId = req.params.id;
+
+    const [result] = await db.query(
+      "DELETE FROM recruiter_invites WHERE id = ?",
+      [inviteId]
+    );
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Invite not found" });
+    }
+
+    return res.status(200).json({
+      message: "Invite deleted successfully"
+    });
+
+  } catch (error) {
+    logger.error("Delete invite error:", error);
+    return res.status(500).json({
+      message: "Error deleting invite"
+    });
+  }
+};
+
+exports.getAdminProfile = async (req, res) => {
+  try {
+
+    const adminId = req.user?.id;
+
+
+    if (!adminId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const sql = `
+      SELECT id, name, email, phone, city, qualification, status
+      FROM users
+      WHERE id = ? AND role = 'admin'
+    `;
+
+    const [rows] = await db.query(sql, [adminId]);
+
+
+    if (!rows || rows.length === 0) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    return res.status(200).json(rows[0]);
+  } catch (error) {
+    logger.error("getAdminProfile error =>", error);
+    return res.status(500).json({
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};
+exports.updateAdminProfile = async (req, res) => {
+  try {
+    const adminId = req.user?.id;
+    const { name, email, phone, city, qualification } = req.body;
+
+    if (!adminId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const sql = `
+      UPDATE users
+      SET name = ?, email = ?, phone = ?, city = ?, qualification = ?
+      WHERE id = ? AND role = 'admin'
+    `;
+
+    const [result] = await db.query(sql, [
+      name,
+      email,
+      phone,
+      city,
+      qualification,
+      adminId,
+    ]);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    return res.status(200).json({
+      message: "Profile updated successfully",
+    });
+  } catch (error) {
+    logger.error("updateAdminProfile error =>", error);
+    return res.status(500).json({
+      message: "Server error",
+      error: error.message,
     });
   }
 };

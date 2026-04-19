@@ -1,0 +1,471 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+.register-page-wrapper {
+  width: 100%;
+  min-height: 100vh;
+  background: #f4f7fb;
+  overflow-x: hidden;
+}
+
+.register-header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.08);
+}
+
+.register-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 40px;
+  background: #fff;
+}
+
+.register-logo-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.register-logo-section img {
+  width: 45px;
+  height: 45px;
+  object-fit: contain;
+}
+
+.register-logo-section h2 {
+  color: #2f5bea;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.register-nav {
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+.register-nav-link {
+  text-decoration: none;
+  color: #2f5bea;
+  font-weight: 500;
+  transition: 0.3s;
+}
+
+.register-nav-link:hover {
+  text-decoration: underline;
+}
+
+.register-nav-link.active {
+  font-weight: 700;
+  border-bottom: 2px solid #2f5bea;
+  padding-bottom: 3px;
+}
+
+.register-page {
+  display: flex;
+  min-height: calc(100vh - 76px);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.register-left {
+  flex: 1;
+  color: white;
+  padding: 80px 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    rgba(13, 39, 112, 0.65),
+    rgba(47, 91, 234, 0.42)
+  );
+}
+
+.register-left h1 {
+  font-size: 52px;
+  margin-bottom: 20px;
+  line-height: 1.15;
+}
+
+.register-left p {
+  margin-bottom: 30px;
+  line-height: 1.6;
+  font-size: 16px;
+  max-width: 560px;
+}
+
+.register-benefits-list {
+  list-style: none;
+  padding-left: 0;
+}
+
+.register-benefits-list li {
+  margin-bottom: 12px;
+  font-size: 15px;
+}
+
+.register-right {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding-right: 60px;
+  padding-top: 60px;
+  padding-bottom: 60px;
+}
+
+.register-card {
+  width: 100%;
+  max-width: 500px;
+  background: #fff;
+  border-radius: 24px;
+  padding: 36px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+}
+
+.register-card h2 {
+  text-align: center;
+  color: #2f5bea;
+  font-size: 36px;
+  margin-bottom: 5px;
+}
+
+.register-card > p {
+  text-align: center;
+  margin-bottom: 10px;
+  color: #666;
+  font-size: 14px;
+}
+
+.register-required-text {
+  text-align: center;
+  font-size: 13px;
+  margin-bottom: 15px;
+  color: #666;
+}
+
+.register-required-text span {
+  color: red;
+  font-weight: bold;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.register-form label {
+  font-size: 14px;
+  margin-top: 14px;
+  margin-bottom: 6px;
+  font-weight: 600;
+  color: #222;
+}
+
+.register-form input,
+.register-form select {
+  width: 100%;
+  padding: 13px 14px;
+  border-radius: 12px;
+  border: 1px solid #d0d5dd;
+  background: #f5f7fb;
+  font-size: 14px;
+  transition: 0.25s;
+}
+
+.register-form input::placeholder {
+  color: #8c8c8c;
+}
+
+.register-form input:focus,
+.register-form select:focus {
+  border-color: #2f5bea;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(47, 91, 234, 0.15);
+  outline: none;
+}
+
+.register-password-field {
+  position: relative;
+}
+
+/* One custom toggle only: hide Edge/IE built-in password reveal & clear. */
+.register-password-field input::-ms-reveal,
+.register-password-field input::-ms-clear {
+  display: none;
+}
+
+.register-password-field input {
+  padding-right: 44px;
+}
+
+.register-password-field span {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 16px;
+  color: #666;
+}
+
+.register-password-help {
+  font-size: 12px;
+  color: #777;
+  margin-top: 5px;
+  line-height: 1.5;
+}
+
+.register-inline-error {
+  margin: 6px 0 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #b91c1c;
+  line-height: 1.4;
+}
+
+.register-password-field input.register-input-error {
+  border-color: #dc2626;
+  background: #fff5f5;
+}
+
+.register-password-field input.register-input-error:focus {
+  border-color: #dc2626;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.18);
+}
+
+.register-checkbox-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.register-checkbox-group input {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.register-checkbox-group label {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.register-link-text {
+  color: #2f5bea;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.register-star {
+  color: red;
+  font-weight: 700;
+}
+
+.register-submit-btn {
+  margin-top: 25px;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  background: #2f5bea;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s;
+  font-weight: 600;
+}
+
+.register-submit-btn:hover {
+  background: #1c3ec9;
+}
+
+.register-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.register-login-text {
+  text-align: center;
+  margin-top: 16px;
+  color: #666;
+  font-size: 14px;
+}
+
+.register-login-text a {
+  color: #2f5bea;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.register-form-message {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.register-form-message.success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #a5d6a7;
+}
+
+.register-form-message.error {
+  background-color: #fdecea;
+  color: #c62828;
+  border: 1px solid #f5c6cb;
+}
+
+.register-message-login-link {
+  color: #1b5e20;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.register-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.register-modal {
+  width: 600px;
+  max-width: 90%;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  animation: registerFadeIn 0.3s ease;
+}
+
+.register-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.register-modal-header h3 {
+  color: #2f5bea;
+  font-size: 20px;
+}
+
+.register-close {
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.register-modal-body {
+  padding: 20px;
+  color: #444;
+  line-height: 1.6;
+}
+
+.register-modal-body ul {
+  margin-top: 10px;
+  padding-left: 20px;
+}
+
+.register-modal-body li {
+  margin-bottom: 8px;
+}
+
+.register-modal-footer {
+  padding: 15px 20px;
+  border-top: 1px solid #eee;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.register-modal-footer button {
+  background: #2f5bea;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.register-modal-footer button:hover {
+  background: #1c3ec9;
+}
+
+@keyframes registerFadeIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .register-page {
+    flex-direction: column;
+  }
+
+  .register-left {
+    text-align: center;
+    padding: 40px 24px;
+  }
+
+  .register-left h1 {
+    font-size: 38px;
+  }
+
+  .register-left p {
+    max-width: 100%;
+  }
+
+  .register-right {
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .register-card {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .register-navbar {
+    flex-direction: column;
+    gap: 16px;
+    padding: 18px 20px;
+  }
+
+  .register-nav {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 18px;
+  }
+
+  .register-page {
+    min-height: auto;
+  }
+}

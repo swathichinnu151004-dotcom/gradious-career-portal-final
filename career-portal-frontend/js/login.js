@@ -3,7 +3,7 @@ function togglePassword(inputId) {
   input.type = input.type === "password" ? "text" : "password";
 }
 
-const API_BASE_URL = "https://timocratic-sessional-lewis.ngrok-free.dev/api";
+const API_BASE_URL = "http://localhost:5000/api";
 
 async function handleLogin(event) {
   event.preventDefault();
@@ -24,9 +24,9 @@ async function handleLogin(event) {
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ identifier, password })
+      body: JSON.stringify({ identifier, password }),
     });
 
     const data = await response.json();
@@ -43,6 +43,14 @@ async function handleLogin(event) {
     message.textContent = "Login successful! Redirecting...";
 
     setTimeout(() => {
+      const redirectAfterLogin = localStorage.getItem("redirectAfterLogin");
+
+      if (redirectAfterLogin && data.role === "user") {
+        localStorage.removeItem("redirectAfterLogin");
+        window.location.href = redirectAfterLogin;
+        return;
+      }
+
       if (data.role === "admin") {
         window.location.href = "Admin/dashboard.html";
       } else if (data.role === "recruiter") {

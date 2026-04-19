@@ -4,19 +4,23 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Gradious Careers Portal</title>
+
   <link rel="stylesheet" href="index.css" />
+
+  <!-- Icons -->
   <link
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
   />
 </head>
+
 <body>
 
   <!-- HEADER -->
   <header class="header">
     <div class="navbar">
       <div class="logo">
-  <img src="images/logo.png" alt="Gradious Logo" />
+        <img src="images/logo.png" alt="Gradious Logo" />
         <span>Gradious Careers Portal</span>
       </div>
 
@@ -32,13 +36,14 @@
   <section class="hero">
     <div class="container hero-content">
       <h1>Welcome to Gradious Careers</h1>
-      <p>Explore internal job opportunities, apply easily, and grow your career with Gradious.</p>
+      <p>
+        Explore internal job opportunities, apply easily, and grow your career with Gradious.
+      </p>
 
       <div class="job-search">
         <input type="text" id="skill" placeholder="Search by skill or job title" />
-<input type="text" id="location" placeholder="Search by location" />
-<button onclick="searchJobs()">Search Jobs</button>
-
+        <input type="text" id="location" placeholder="Search by location" />
+        <button onclick="searchJobs()">Search Jobs</button>
       </div>
     </div>
   </section>
@@ -48,94 +53,24 @@
     <div class="container">
       <div class="section-title">
         <h2>Latest Job Openings</h2>
-        <a href="javascript:void(0)" id="toggleJobsBtn">View All</a>
+        <a href="view-jobs.html">View All</a>
       </div>
 
+      <!-- Dynamic Jobs -->
       <div class="job-grid" id="jobGrid">
-        <div class="job-card">
-          <h3>Software Engineer</h3>
-          <p><strong>Department:</strong> IT</p>
-          <p><strong>Location:</strong> Hyderabad</p>
-          <p><strong>Experience:</strong> 1+ Years</p>
-          <a href="#" class="btn-view">View Details</a>
-        </div>
-
-        <div class="job-card">
-          <h3>Data Analyst</h3>
-          <p><strong>Department:</strong> Analytics</p>
-          <p><strong>Location:</strong> Hyderabad</p>
-          <p><strong>Experience:</strong> 2+ Years</p>
-          <a href="#" class="btn-view">View Details</a>
-        </div>
-
-        <div class="job-card">
-          <h3>HR Specialist</h3>
-          <p><strong>Department:</strong> HR</p>
-          <p><strong>Location:</strong> Hyderabad</p>
-          <p><strong>Experience:</strong> 1+ Years</p>
-          <a href="#" class="btn-view">View Details</a>
-        </div>
-
-        <div class="job-card">
-          <h3>Marketing Executive</h3>
-          <p><strong>Department:</strong> Marketing</p>
-          <p><strong>Location:</strong> Hyderabad</p>
-          <p><strong>Experience:</strong> 2+ Years</p>
-          <a href="#" class="btn-view">View Details</a>
-        </div>
-
-        <div class="job-card">
-          <h3>Finance Analyst</h3>
-          <p><strong>Department:</strong> Finance</p>
-          <p><strong>Location:</strong> Hyderabad</p>
-          <p><strong>Experience:</strong> 2+ Years</p>
-          <a href="#" class="btn-view">View Details</a>
-        </div>
+        <!-- Jobs will load here dynamically -->
       </div>
     </div>
   </section>
 
-  <!-- DEPARTMENTS -->
+  <!-- DEPARTMENTS (DYNAMIC) -->
   <section class="departments">
     <div class="container">
       <h2>Departments Hiring</h2>
 
-      <div class="dept-grid">
-        <div class="dept-card">
-          <h3>IT Department</h3>
-          <p>8 Open Positions</p>
-          <button class="dept-btn">View Jobs</button>
-        </div>
-
-        <div class="dept-card">
-          <h3>HR Department</h3>
-          <p>3 Open Positions</p>
-          <button class="dept-btn">View Jobs</button>
-        </div>
-
-        <div class="dept-card">
-          <h3>Marketing</h3>
-          <p>4 Open Positions</p>
-          <button class="dept-btn">View Jobs</button>
-        </div>
-
-        <div class="dept-card">
-          <h3>Finance</h3>
-          <p>2 Open Positions</p>
-          <button class="dept-btn">View Jobs</button>
-        </div>
-
-        <div class="dept-card">
-          <h3>Operations</h3>
-          <p>5 Open Positions</p>
-          <button class="dept-btn">View Jobs</button>
-        </div>
-
-        <div class="dept-card">
-          <h3>Training & Development</h3>
-          <p>3 Open Positions</p>
-          <button class="dept-btn">View Jobs</button>
-        </div>
+      <!-- IMPORTANT: Only this container -->
+      <div class="dept-grid" id="deptGrid">
+        <!-- Data comes from backend -->
       </div>
     </div>
   </section>
@@ -160,22 +95,17 @@
       <p>© 2026 Gradious Careers Portal. All Rights Reserved.</p>
 
       <div class="social-icons">
-  <a href="https://www.linkedin.com/" target="_blank">
-    <i class="fa-brands fa-linkedin"></i>
-  </a>
-  <a href="https://github.com/" target="_blank">
-    <i class="fa-brands fa-github"></i>
-  </a>
-  <a href="https://twitter.com/" target="_blank">
-    <i class="fa-brands fa-x-twitter"></i>
-  </a>
-  <a href="https://www.instagram.com/" target="_blank">
-    <i class="fa-brands fa-instagram"></i>
-  </a>
-</div>
+        <a href="#"><i class="fa-brands fa-linkedin"></i></a>
+        <a href="#"><i class="fa-brands fa-github"></i></a>
+        <a href="#"><i class="fa-brands fa-x-twitter"></i></a>
+        <a href="#"><i class="fa-brands fa-instagram"></i></a>
+      </div>
     </div>
   </footer>
 
+  <!-- SCRIPTS -->
+  <script src="js/departments.js"></script>
   <script src="home.js"></script>
+
 </body>
 </html>

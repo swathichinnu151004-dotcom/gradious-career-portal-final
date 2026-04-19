@@ -4,6 +4,7 @@ const router = express.Router();
 const verifyToken = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 const adminController = require("../controllers/adminController");
+const {getAdminProfile} = require("../controllers/adminController");
 
 const {
   inviteRecruiter,
@@ -14,6 +15,8 @@ const {
 router.post("/invite-recruiter", inviteRecruiter);
 // Get all recruiter invites
 router.get("/recruiter-invites", getRecruiterInvites);
+router.get("/profile", verifyToken, roleMiddleware("admin"), getAdminProfile);
+router.put("/profile", verifyToken, roleMiddleware("admin"), adminController.updateAdminProfile);
 // RESEND INVITE
 router.post(
   "/resend-invite",

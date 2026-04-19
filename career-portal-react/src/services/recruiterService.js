@@ -1,13 +1,18 @@
-export const getDashboardSummary = async () => {
-  const token = localStorage.getItem("token");
+import API from "./api";
 
-  const res = await fetch("http://localhost:5000/api/user/dashboard-summary", {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    }
-  });
+export const getRecruiterDashboardSummary = () => {
+  return API.get("/recruiter/dashboard-summary");
+};
 
-  return res.json();
+export const getRecruiterJobs = () => {
+  return API.get("/recruiter/jobs");
+};
+export const getRecruiterApplications = () => {
+  return API.get("/recruiter/applications");
+};
+export const updateApplicationStatus = (id, status) => {
+  return API.put(`/recruiter/applications/status/${id}`, { status });
+};
+export const getRecruiterProfile = () => {
+  return API.get("/recruiter/profile");
 };

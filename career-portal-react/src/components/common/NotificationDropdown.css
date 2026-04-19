@@ -1,0 +1,311 @@
+.notification-wrap {
+  position: relative;
+  z-index: 2000;
+}
+
+.notification-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  width: min(380px, calc(100vw - 40px));
+  max-height: 420px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow:
+    0 22px 50px rgba(15, 61, 145, 0.14),
+    0 0 0 1px rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  z-index: 2100;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.notification-dropdown-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eef2f7;
+  background: linear-gradient(90deg, #f8fafc, #ffffff);
+}
+
+.notification-dropdown-header h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 800;
+  color: #0b285d;
+}
+
+.notification-mark-all {
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+
+.notification-mark-all:hover:not(:disabled) {
+  background: rgba(37, 99, 235, 0.08);
+}
+
+.notification-mark-all:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.notification-dropdown-body {
+  overflow-y: auto;
+  max-height: 340px;
+}
+
+.notification-empty {
+  padding: 28px 16px;
+  text-align: center;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.notification-item {
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border-bottom: 1px solid #f1f5f9;
+  background: #ffffff;
+  transition: background 0.15s ease;
+}
+
+.notification-item:hover {
+  background: #f8fafc;
+}
+
+.notification-item.unread {
+  background: #f0f7ff;
+}
+
+.notification-item.unread:hover {
+  background: #e8f2ff;
+}
+
+.notification-item-main {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 12px 8px 12px 16px;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.notification-item-main:hover {
+  background: rgba(248, 250, 252, 0.85);
+}
+
+.notification-item.unread .notification-item-main:hover {
+  background: rgba(232, 242, 255, 0.9);
+}
+
+.notification-item-close {
+  position: relative;
+  z-index: 3;
+  flex-shrink: 0;
+  width: 40px;
+  min-width: 40px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 8px 8px 0;
+  transition: color 0.15s ease, background 0.15s ease;
+  pointer-events: auto;
+}
+
+.notification-item-close:hover:not(:disabled) {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.notification-item-close:disabled {
+  opacity: 0.45;
+  cursor: wait;
+}
+
+.notification-item-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px;
+}
+
+.notification-item-message {
+  font-size: 12px;
+  color: #475569;
+  margin: 0 0 6px;
+  line-height: 1.45;
+}
+
+.notification-item-meta {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.notification-dropdown-loading {
+  padding: 20px;
+  text-align: center;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.notification-dropdown-error {
+  padding: 14px 16px;
+  color: #b91c1c;
+  font-size: 13px;
+}
+
+/* —— Bell trigger (dashboard topbar) —— */
+.dashboard-bell-btn.notification-bell-btn {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  border-radius: 14px;
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  background: linear-gradient(160deg, #ffffff 0%, #f0f6ff 55%, #e8efff 100%);
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  color: #2563eb;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.dashboard-bell-btn.notification-bell-btn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(37, 99, 235, 0.35);
+  color: #1d4ed8;
+  box-shadow:
+    0 10px 26px rgba(37, 99, 235, 0.14),
+    0 1px 2px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+.dashboard-bell-btn.notification-bell-btn:active {
+  transform: translateY(0);
+}
+
+.dashboard-bell-btn.notification-bell-btn:focus {
+  outline: none;
+}
+
+.dashboard-bell-btn.notification-bell-btn:focus-visible {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow:
+    0 0 0 3px rgba(59, 130, 246, 0.35),
+    0 8px 22px rgba(37, 99, 235, 0.12);
+}
+
+.dashboard-bell-btn.notification-bell-btn.open {
+  border-color: #93c5fd;
+  background: linear-gradient(160deg, #eff6ff 0%, #dbeafe 100%);
+  color: #1d4ed8;
+  box-shadow:
+    0 0 0 3px rgba(59, 130, 246, 0.22),
+    0 8px 20px rgba(37, 99, 235, 0.12);
+}
+
+.dashboard-bell-btn.notification-bell-btn.has-unread {
+  border-color: rgba(239, 68, 68, 0.22);
+}
+
+.notification-bell-glow {
+  position: absolute;
+  inset: -2px;
+  border-radius: 16px;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 30% 20%,
+    rgba(59, 130, 246, 0.2),
+    transparent 62%
+  );
+  transition: opacity 0.25s ease;
+}
+
+.dashboard-bell-btn.notification-bell-btn.has-unread .notification-bell-glow {
+  opacity: 1;
+}
+
+.notification-bell-icon-wrap {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notification-bell-svg {
+  filter: drop-shadow(0 1px 1px rgba(15, 23, 42, 0.06));
+}
+
+.notification-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #f87171, #dc2626);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.45);
+  z-index: 2;
+}
+
+.notification-badge.hidden {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-bell-btn.notification-bell-btn,
+  .dashboard-bell-btn.notification-bell-btn:hover,
+  .dashboard-bell-btn.notification-bell-btn:active {
+    transition: none;
+  }
+
+  .dashboard-bell-btn.notification-bell-btn:hover {
+    transform: none;
+  }
+
+  .notification-bell-glow {
+    transition: none;
+  }
+}

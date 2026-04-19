@@ -2,39 +2,46 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-const uploadDir = path.join(__dirname, "../uploads/resumes");
-
+// Ensure uploads/resumes folder exists
+const uploadDir = path.join(__dirname, "../../uploads/resumes");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+// Multer storage config
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: function (req, file, cb) {
     cb(null, uploadDir);
   },
-  filename: (req, file, cb) => {
-    const fileName = Date.now() + "-" + file.originalname.replace(/\s+/g, "_");
-    cb(null, fileName);
-  }
+  filename: function (req, file, cb) {
+    const uniqueName = Date.now() + "-" + file.originalname.replace(/\s+/g, "_");
+    cb(null, uniqueName);
+  },
 });
 
+// File filter for resume types
 const fileFilter = (req, file, cb) => {
-  const allowedExtensions = [".pdf", ".doc", ".docx"];
-  const ext = path.extname(file.originalname).toLowerCase();
+  const allowedExtensions = /pdf|doc|docx/;
+  const extName = allowedExtensions.test(path.extname(file.originalname).toLowerCase());
+  const mimeType =
+    file.mimetype === "application/pdf" ||
+    file.mimetype === "application/msword" ||
+    file.mimetype ===
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-  if (allowedExtensions.includes(ext)) {
+  if (extName && mimeType) {
     cb(null, true);
   } else {
     cb(new Error("Only PDF, DOC, and DOCX files are allowed"));
   }
 };
 
-const upload = multer({
+const uploadResume = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024
-  }
+    fileSize: 5 * 1024 * 1024, // 5 MB
+  },
 });
 
-module.exports = upload;
+module.exports = uploadResume;

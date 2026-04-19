@@ -1,77 +1,90 @@
 const db = require("../config/connectDB");
+const logger = require("../utils/logger");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
+const { OAuth2Client } = require("google-auth-library");
 const sendEmail = require("../utils/sendMail");
 
+function normalizeGoogleWebClientId(value) {
+  let s = String(value || "").trim();
+  if (
+    (s.startsWith('"') && s.endsWith('"')) ||
+    (s.startsWith("'") && s.endsWith("'"))
+  ) {
+    s = s.slice(1, -1).trim();
+  }
+  return s;
+}
+
 /* ================= FORGOT PASSWORD ================= */
+
+const query = (sql, values) => {
+  return new Promise((resolve, reject) => {
+    db.query(sql, values, (err, results) => {
+      if (err) return reject(err);
+      resolve(results);
+    });
+  });
+};
+
 const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
-    if (!email || !email.trim()) {
+    if (!email) {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    const userEmail = email.trim().toLowerCase();
-
-    const [users] = await db.query(
-      "SELECT id, name, email FROM users WHERE LOWER(email) = ? LIMIT 1",
-      [userEmail]
+    const users = await query(
+      "SELECT * FROM users WHERE email = ?",
+      [email]
     );
 
-    // Security: do not reveal whether email exists or not
     if (users.length === 0) {
-      return res.status(200).json({
-        message: "If this email is registered, a reset link has been sent."
-      });
+      return res.status(404).json({ message: "User not found" });
     }
 
-    const user = users[0];
+    const token = crypto.randomBytes(32).toString("hex");
 
-    const resetToken = crypto.randomBytes(32).toString("hex");
-    const expiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-
-    await db.query(
-      "UPDATE users SET reset_token = ?, reset_token_expires = ? WHERE id = ?",
-      [resetToken, expiry, user.id]
+    await query(
+      `UPDATE users
+       SET reset_token = ?, reset_token_expiry = DATE_ADD(NOW(), INTERVAL 15 MINUTE)
+       WHERE email = ?`,
+      [token, email]
     );
 
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password.html?token=${resetToken}`;
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
 
     const html = `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-        <h2 style="color: #1d4ed8;">Reset Your Password</h2>
-        <p>Hello ${user.name || "User"},</p>
-        <p>We received a request to reset your password for your Gradious Careers Portal account.</p>
-        <p>
-          <a href="${resetLink}" 
-             style="display:inline-block; padding:10px 18px; background:#2563eb; color:#fff; text-decoration:none; border-radius:6px;">
-             Reset Password
-          </a>
-        </p>
-        <p>This link will expire in <b>15 minutes</b>.</p>
-        <p>If you did not request this, you can safely ignore this email.</p>
-        <br />
-        <p>Regards,<br/>Gradious Careers Portal Team</p>
+      <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2>Reset Password</h2>
+        <p>You requested to reset your password.</p>
+        <p>Click below to set a new password:</p>
+        <a href="${resetLink}" 
+           style="display:inline-block;padding:12px 20px;background:#dc2626;color:#fff;text-decoration:none;border-radius:6px;">
+           Reset Password
+        </a>
+        <p style="margin-top:15px;">This link will expire in 15 minutes.</p>
       </div>
     `;
 
     await sendEmail({
-      to: user.email,
-      subject: "Reset Your Password - Gradious Careers Portal",
-      html
+      to: email,
+      subject: "Reset Password - Gradious Careers Portal",
+      html,
     });
 
     return res.status(200).json({
-      message: "If this email is registered, a reset link has been sent."
+      message: "Reset password email sent successfully",
     });
   } catch (error) {
-    console.error("Forgot Password Error:", error);
-    return res.status(500).json({ message: "Failed to process forgot password request" });
+    logger.error("Forgot Password Error:", error);
+    return res.status(500).json({
+      message: error.message || "Error sending reset password email",
+    });
   }
 };
-
 /* ================= RESET PASSWORD ================= */
 const resetPassword = async (req, res) => {
   try {
@@ -96,9 +109,9 @@ const resetPassword = async (req, res) => {
     }
 
     const [users] = await db.query(
-      `SELECT id, email, reset_token_expires 
-       FROM users 
-       WHERE reset_token = ? 
+      `SELECT id, email, reset_token_expires
+       FROM users
+       WHERE reset_token = ?
        LIMIT 1`,
       [token]
     );
@@ -116,7 +129,7 @@ const resetPassword = async (req, res) => {
     const hashedPassword = await bcrypt.hash(newPassword, 10);
 
     await db.query(
-      `UPDATE users 
+      `UPDATE users
        SET password = ?, reset_token = NULL, reset_token_expires = NULL
        WHERE id = ?`,
       [hashedPassword, user.id]
@@ -126,40 +139,65 @@ const resetPassword = async (req, res) => {
       message: "Password has been reset successfully"
     });
   } catch (error) {
-    console.error("Reset Password Error:", error);
+    logger.error("Reset Password Error:", error);
     return res.status(500).json({ message: "Failed to reset password" });
   }
 };
 // LOGIN
+// const bcrypt = require("bcrypt"); // only needed if passwords are hashed
 const login = async (req, res) => {
   try {
     const { identifier, password } = req.body;
 
     if (!identifier || !password) {
       return res.status(400).json({
-        message: "Identifier and password are required"
+        message: "Identifier and password are required",
       });
     }
 
-    const [results] = await db.query(
-      `SELECT * FROM users 
-       WHERE email = ? OR phone = ?
-       LIMIT 1`,
-      [identifier, identifier]   // ✅ FIX HERE
+    let account = null;
+    let accountType = "user";
+
+    // 1. Check users table first
+    const [userResults] = await db.query(
+      `SELECT * FROM users WHERE email = ? OR phone = ? LIMIT 1`,
+      [identifier, identifier]
     );
 
-    if (results.length === 0) {
+    if (userResults.length > 0) {
+      account = userResults[0];
+      accountType = "user";
+    } else {
+      // 2. If not found, check recruiters table
+      const [recruiterResults] = await db.query(
+        `SELECT * FROM recruiters WHERE email = ? OR phone = ? LIMIT 1`,
+        [identifier, identifier]
+      );
+
+      if (recruiterResults.length > 0) {
+        account = recruiterResults[0];
+        accountType = "recruiter";
+      }
+    }
+
+    if (!account) {
       return res.status(404).json({ message: "User does not exist" });
     }
 
-    const user = results[0];
+    if (account.status && account.status.toLowerCase() !== "active") {
+      return res.status(403).json({ message: "Your account is blocked" });
+    }
 
-    if (user.password !== password) {
+    const isMatch = await bcrypt.compare(password, account.password);
+
+    if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    const role = String(account.role || accountType).toLowerCase().trim();
+
     const token = jwt.sign(
-      { id: user.id, role: user.role },
+      { id: account.id, role },
       process.env.JWT_SECRET || "mysecretkey",
       { expiresIn: "1d" }
     );
@@ -167,51 +205,262 @@ const login = async (req, res) => {
     return res.status(200).json({
       message: "Login successful",
       token,
-      role: user.role,
+      role,
       user: {
-        id: user.id,
-        name: user.name,
-        email: user.email
-      }
+        id: account.id,
+        name: account.name,
+        email: account.email,
+        phone: account.phone,
+      },
     });
-
   } catch (error) {
-    console.error("Login error:", error);
+    logger.error("Login error:", error);
     return res.status(500).json({ message: "Server error during login" });
   }
 };
-// REGISTER USER
-const registerUser = async (req, res) => {
-  try {
-    const { firstName, lastName, email, phone, password } = req.body;
 
-    if (!firstName || !lastName || !email || !phone || !password) {
-      return res.status(400).json({ message: "Please fill all required fields" });
+function displayNameFromGooglePayload(payload, email) {
+  const full = String(payload.name || "").trim();
+  if (full) return full;
+  const g = String(payload.given_name || "").trim();
+  const f = String(payload.family_name || "").trim();
+  const combo = `${g} ${f}`.trim();
+  if (combo) return combo;
+  const local = String(email || "").split("@")[0];
+  return local || "User";
+}
+
+/** Unique 10-digit placeholder phone for Google-only signups (Indian-style pattern). */
+async function allocateUniquePlaceholderPhone() {
+  for (let attempt = 0; attempt < 35; attempt += 1) {
+    const phone = `9${String(Math.floor(100000000 + Math.random() * 900000000))}`;
+    const [rows] = await db.query(
+      "SELECT id FROM users WHERE phone = ? LIMIT 1",
+      [phone]
+    );
+    if (rows.length === 0) return phone;
+  }
+  throw new Error("Could not allocate unique phone placeholder");
+}
+
+/**
+ * Google ID token → JWT for candidates (`users`, role user).
+ * Existing user: sign in. New verified Gmail: create account then sign in.
+ */
+const googleLogin = async (req, res) => {
+  try {
+    const { credential } = req.body;
+    if (!credential || typeof credential !== "string") {
+      return res.status(400).json({ message: "Google credential is required" });
     }
 
-    const [checkResult] = await db.query(
-      "SELECT * FROM users WHERE email = ? LIMIT 1",
+    const clientId = normalizeGoogleWebClientId(process.env.GOOGLE_CLIENT_ID);
+    if (!clientId) {
+      return res.status(503).json({
+        message: "Google sign-in is not enabled on this server",
+      });
+    }
+
+    const oAuthClient = new OAuth2Client(clientId);
+    const ticket = await oAuthClient.verifyIdToken({
+      idToken: credential,
+      audience: clientId,
+    });
+    const payload = ticket.getPayload();
+    const email = (payload.email || "").trim().toLowerCase();
+
+    if (!email || payload.email_verified !== true) {
+      return res.status(401).json({
+        message: "Google account email is missing or not verified",
+      });
+    }
+
+    const [userResults] = await db.query(
+      `SELECT * FROM users
+       WHERE LOWER(TRIM(email)) = ?
+       AND LOWER(TRIM(COALESCE(role, 'user'))) = 'user'
+       LIMIT 1`,
       [email]
     );
 
-    if (checkResult.length > 0) {
-      return res.status(409).json({ message: "You already registered. Please login." });
+    let account = userResults[0] || null;
+    let created = false;
+
+    if (account) {
+      if (account.status && String(account.status).toLowerCase() !== "active") {
+        return res.status(403).json({ message: "Your account is blocked" });
+      }
+    } else {
+      const [otherUsers] = await db.query(
+        `SELECT id, role FROM users WHERE LOWER(TRIM(email)) = ? LIMIT 1`,
+        [email]
+      );
+      if (otherUsers.length > 0) {
+        const r = String(otherUsers[0].role || "user").toLowerCase();
+        if (r === "admin") {
+          return res.status(403).json({
+            message:
+              "This email is registered as an admin. Sign in with email and password.",
+          });
+        }
+        return res.status(409).json({
+          message:
+            "This email is already registered. Use email sign-in or the correct portal for your role.",
+        });
+      }
+
+      const [recRows] = await db.query(
+        `SELECT id FROM recruiters WHERE LOWER(TRIM(email)) = ? LIMIT 1`,
+        [email]
+      );
+      if (recRows.length > 0) {
+        return res.status(409).json({
+          message:
+            "This email is registered as a recruiter. Use recruiter sign-in instead.",
+        });
+      }
+
+      const nameTrim = displayNameFromGooglePayload(payload, email);
+      const cityTrim = "Not specified";
+      const qualTrim = "Other";
+      const phoneTrim = await allocateUniquePlaceholderPhone();
+      const randomPw = crypto.randomBytes(32).toString("hex");
+      const hashedPassword = await bcrypt.hash(randomPw, 10);
+
+      try {
+        const [ins] = await db.query(
+          `INSERT INTO users (name, email, phone, city, qualification, password, role, status)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            nameTrim,
+            email,
+            phoneTrim,
+            cityTrim,
+            qualTrim,
+            hashedPassword,
+            "user",
+            "Active",
+          ]
+        );
+        const newId = ins.insertId;
+        const [fresh] = await db.query(
+          `SELECT * FROM users WHERE id = ? LIMIT 1`,
+          [newId]
+        );
+        account = fresh[0];
+        created = true;
+      } catch (insertErr) {
+        logger.error("Google signup insert error:", insertErr);
+        if (insertErr.code === "ER_DUP_ENTRY") {
+          return res.status(409).json({
+            message:
+              "Could not complete Google sign-up (email or phone already in use). Try signing in instead.",
+          });
+        }
+        throw insertErr;
+      }
     }
 
-    const fullName = `${firstName} ${lastName}`;
+    const role = "user";
+    const token = jwt.sign(
+      { id: account.id, role },
+      process.env.JWT_SECRET || "mysecretkey",
+      { expiresIn: "1d" }
+    );
+
+    return res.status(200).json({
+      message: created
+        ? "Welcome! Your candidate account was created with Google."
+        : "Login successful",
+      token,
+      role,
+      created,
+      user: {
+        id: account.id,
+        name: account.name,
+        email: account.email,
+        phone: account.phone,
+      },
+    });
+  } catch (error) {
+    logger.error("Google login error:", error);
+    return res.status(401).json({
+      message: "Google sign-in could not be verified. Please try again.",
+    });
+  }
+};
+
+const getGoogleClientId = (req, res) => {
+  res.json({ clientId: normalizeGoogleWebClientId(process.env.GOOGLE_CLIENT_ID) });
+};
+
+// REGISTER USER
+
+const registerUser = async (req, res) => {
+  try {
+    const { name, email, phone, city, qualification, password } = req.body;
+
+    const nameTrim = String(name || "").trim();
+    const emailTrim = String(email || "").trim();
+    const phoneTrim = String(phone || "").trim();
+    const cityTrim = String(city || "").trim();
+    const qualTrim = String(qualification || "").trim();
+
+    if (!nameTrim || !emailTrim || !phoneTrim || !cityTrim || !qualTrim || !password) {
+      return res.status(400).json({
+        message: "Name, email, phone, city, qualification, and password are required.",
+      });
+    }
+
+    if (cityTrim.length < 2) {
+      return res.status(400).json({ message: "City must be at least 2 characters." });
+    }
+
+    const [existingUsers] = await db.query(
+      "SELECT id, email, phone FROM users WHERE email = ? OR phone = ?",
+      [emailTrim, phoneTrim]
+    );
+
+    if (existingUsers.length > 0) {
+      const emailExists = existingUsers.some((u) => u.email === emailTrim);
+      const phoneExists = existingUsers.some((u) => u.phone === phoneTrim);
+
+      if (emailExists) {
+        return res.status(400).json({ message: "Email already registered" });
+      }
+
+      if (phoneExists) {
+        return res.status(400).json({ message: "Phone number already registered" });
+      }
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     await db.query(
-      "INSERT INTO users (name, email, phone, password, role) VALUES (?, ?, ?, ?, 'user')",
-      [fullName, email, phone, password]
+      `INSERT INTO users (name, email, phone, city, qualification, password, role, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [nameTrim, emailTrim, phoneTrim, cityTrim, qualTrim, hashedPassword, "user", "Active"]
     );
 
     return res.status(201).json({ message: "Registration successful" });
   } catch (error) {
-    console.error("Register user error:", error);
-    return res.status(500).json({ message: "Error registering user" });
-  }
-};
+  logger.error("Register error:", error);
 
+  if (error.code === "ER_DUP_ENTRY") {
+    if (error.sqlMessage.includes("unique_users_email")) {
+      return res.status(400).json({ message: "Email already registered" });
+    }
+
+    if (error.sqlMessage.includes("unique_users_phone")) {
+      return res.status(400).json({ message: "Phone number already registered" });
+    }
+
+    return res.status(400).json({ message: "Duplicate entry not allowed" });
+  }
+
+  return res.status(500).json({ message: "Server error during registration" });
+}
+};
 // GET /api/auth/validate-invite/:token
 const validateInviteToken = async (req, res) => {
   try {
@@ -248,67 +497,104 @@ const validateInviteToken = async (req, res) => {
       email: invite.email
     });
   } catch (error) {
-    console.error("Validate invite token error:", error);
+    logger.error("Validate invite token error:", error);
     return res.status(500).json({ message: "Server error while validating invite" });
   }
 };
 // POST /api/auth/register-recruiter
+
 const registerRecruiter = async (req, res) => {
   try {
-    const { token, name, phone, company_name, location, password } = req.body;
+    const { token, name, password, company_name, phone, location } = req.body;
 
-    if (!token || !name || !phone || !company_name || !location || !password) {
+    if (!token || !name || !password || !company_name || !phone || !location) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const [inviteRows] = await db.query(
-      `SELECT * FROM recruiter_invites 
-       WHERE token = ? AND status = 'Pending' AND expires_at > NOW()`,
-      [token]
-    );
+    const checkInviteSql = `
+      SELECT * FROM recruiter_invites
+      WHERE token = ? AND status = 'Pending'
+    `;
 
-    if (inviteRows.length === 0) {
-      return res.status(400).json({ message: "Invalid or expired invite token" });
-    }
+    db.query(checkInviteSql, [token], async (err, inviteResults) => {
+      if (err) {
+        logger.error("Invite check error:", err);
+        return res.status(500).json({ message: "Database error" });
+      }
 
-    const invitedEmail = inviteRows[0].email;
+      if (inviteResults.length === 0) {
+        return res.status(400).json({ message: "Invalid or expired invite token" });
+      }
 
-    const [existingRecruiter] = await db.query(
-      "SELECT id FROM recruiters WHERE email = ?",
-      [invitedEmail]
-    );
+      const invite = inviteResults[0];
+      const email = invite.email;
 
-    if (existingRecruiter.length > 0) {
-      return res.status(400).json({ message: "Recruiter already registered" });
-    }
+      const checkRecruiterSql = `
+        SELECT * FROM recruiters WHERE email = ?
+      `;
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+      db.query(checkRecruiterSql, [email], async (err, recruiterResults) => {
+        if (err) {
+          logger.error("Recruiter check error:", err);
+          return res.status(500).json({ message: "Database error" });
+        }
 
-    await db.query(
-      `INSERT INTO recruiters
-       (name, email, phone, company_name, location, password, role, status)
-       VALUES (?, ?, ?, ?, ?, ?, 'recruiter', 'Active')`,
-      [name.trim(), invitedEmail, phone.trim(), company_name.trim(), location.trim(), hashedPassword]
-    );
+        if (recruiterResults.length > 0) {
+          return res.status(400).json({ message: "Recruiter already exists" });
+        }
 
-    await db.query(
-      "UPDATE recruiter_invites SET status = 'Accepted' WHERE token = ?",
-      [token]
-    );
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-    return res.status(201).json({
-      message: "Recruiter registered successfully"
+        const insertRecruiterSql = `
+          INSERT INTO recruiters
+          (name, email, password, company_name, phone, location, role, status, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, 'recruiter', 'Active', NOW())
+        `;
+
+        db.query(
+          insertRecruiterSql,
+          [name, email, hashedPassword, company_name, phone, location],
+          (err, result) => {
+            if (err) {
+              logger.error("Insert recruiter error:", err);
+              return res.status(500).json({ message: "Failed to create recruiter" });
+            }
+
+            const updateInviteSql = `
+              UPDATE recruiter_invites
+              SET status = 'Accepted'
+              WHERE token = ?
+            `;
+
+            db.query(updateInviteSql, [token], (err) => {
+              if (err) {
+                logger.error("Update invite error:", err);
+                return res.status(500).json({
+                  message: "Recruiter created but invite status not updated"
+                });
+              }
+
+              return res.status(201).json({
+                message: "Recruiter registered successfully"
+              });
+            });
+          }
+        );
+      });
     });
   } catch (error) {
-    console.error("registerRecruiter error:", error);
-    return res.status(500).json({ message: "Server error while registering recruiter" });
+    logger.error("Register recruiter error:", error);
+    return res.status(500).json({ message: "Server error" });
   }
 };
+
 module.exports = {
   login,
+  googleLogin,
+  getGoogleClientId,
   registerUser,
   registerRecruiter,
   validateInviteToken,
   forgotPassword,
-  resetPassword
+  resetPassword,
 };

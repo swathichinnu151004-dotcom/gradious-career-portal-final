@@ -1,29 +1,21 @@
 const express = require("express");
 const router = express.Router();
 
+const {
+  getNotifications,
+  getUnreadNotificationCount,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification,
+} = require("../controllers/notificationController");
+
 const verifyToken = require("../middleware/authMiddleware");
-const roleMiddleware = require("../middleware/roleMiddleware");
-const notificationController = require("../controllers/notificationController");
 
-router.get(
-  "/count",
-  verifyToken,
-  roleMiddleware("user"),
-  notificationController.getNotificationCount
-);
-
-router.get(
-  "/",
-  verifyToken,
-  roleMiddleware("user"),
-  notificationController.getNotifications
-);
-
-router.put(
-  "/:id/read",
-  verifyToken,
-  roleMiddleware("user"),
-  notificationController.markNotificationAsRead
-);
+router.get("/unread-count", verifyToken, getUnreadNotificationCount);
+router.put("/mark-all-read", verifyToken, markAllNotificationsAsRead);
+router.put("/read-all/all", verifyToken, markAllNotificationsAsRead);
+router.delete("/:id", verifyToken, deleteNotification);
+router.put("/:id/read", verifyToken, markNotificationAsRead);
+router.get("/", verifyToken, getNotifications);
 
 module.exports = router;

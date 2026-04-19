@@ -1,0 +1,32 @@
+{
+  "name": "gradious-career-portal",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Gradious Career Portal — monorepo (React UI + Express API), release v1.0.0",
+  "main": "index.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "bootstrap": "npm install --prefix career-portal-react && npm install --prefix career-portal-backend",
+    "dev": "concurrently -n web,api -c blue,green \"npm run start --prefix career-portal-react\" \"npm run dev --prefix career-portal-backend\"",
+    "build": "npm run build --prefix career-portal-react",
+    "start:api": "npm start --prefix career-portal-backend",
+    "test": "echo \"No root tests; use npm test --prefix career-portal-react\" && exit 0"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/swathichinnu151004-dotcom/gradious-career-portal-final.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/swathichinnu151004-dotcom/gradious-career-portal-final/issues"
+  },
+  "homepage": "https://github.com/swathichinnu151004-dotcom/gradious-career-portal-final#readme"
+}

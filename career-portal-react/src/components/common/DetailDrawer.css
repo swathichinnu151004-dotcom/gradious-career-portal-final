@@ -1,0 +1,171 @@
+/* Right-side drawer — shared across admin / recruiter “View” details */
+
+.detail-drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  box-sizing: border-box;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  justify-content: flex-end;
+  align-items: stretch;
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0)
+    env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.detail-drawer-panel {
+  width: min(420px, 100%);
+  max-width: 100%;
+  min-height: min(100%, 100dvh);
+  max-height: 100dvh;
+  background: #ffffff;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
+  padding: 22px;
+  animation: detailDrawerSlideIn 0.3s ease;
+  border-top-left-radius: 18px;
+  border-bottom-left-radius: 18px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-drawer-panel--lg {
+  width: min(480px, 100%);
+}
+
+@keyframes detailDrawerSlideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.detail-drawer-header {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.detail-drawer-header-text {
+  min-width: 0;
+}
+
+.detail-drawer-header h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 800;
+  color: #1e3a8a;
+  line-height: 1.2;
+}
+
+.detail-drawer-subtitle {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.detail-drawer-close {
+  flex-shrink: 0;
+  border: none;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  background: #f1f5f9;
+  color: inherit;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.detail-drawer-close:hover {
+  background: #ef4444;
+  color: #fff;
+}
+
+.detail-drawer-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Optional 2-column grid for dense fields (e.g. applications) */
+.detail-drawer-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.detail-drawer-card {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+}
+
+.detail-drawer-card--full {
+  grid-column: 1 / -1;
+}
+
+.detail-drawer-card-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #6b7280;
+  display: block;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.detail-drawer-card-value {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+  word-break: break-word;
+}
+
+.detail-drawer-resume-box {
+  margin-top: 4px;
+  background: #f8fbff;
+  border: 1px solid #e6eef8;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.detail-drawer-resume-box .detail-drawer-card-label {
+  margin-bottom: 10px;
+}
+
+@media (max-width: 768px) {
+  .detail-drawer-overlay {
+    justify-content: stretch;
+  }
+
+  .detail-drawer-panel,
+  .detail-drawer-panel--lg {
+    width: 100%;
+    min-height: 100dvh;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  .detail-drawer-card-grid {
+    grid-template-columns: 1fr;
+  }
+}

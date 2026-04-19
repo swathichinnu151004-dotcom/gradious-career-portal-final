@@ -1,0 +1,45 @@
+.app-portal-toast {
+  position: fixed;
+  top: max(20px, env(safe-area-inset-top, 0px));
+  right: max(20px, env(safe-area-inset-right, 0px));
+  left: auto;
+  bottom: auto;
+  width: auto;
+  max-width: min(380px, calc(100vw - 32px));
+  min-height: 0;
+  height: auto;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 14px 18px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+  z-index: 10080;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+  pointer-events: auto;
+  animation: appPortalToastIn 0.12s ease-out;
+}
+
+@keyframes appPortalToastIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.app-portal-toast--success {
+  background: #ffffff;
+  color: #15803d;
+  border: 2px solid #22c55e;
+}
+
+.app-portal-toast--error {
+  background: #ffffff;
+  color: #b91c1c;
+  border: 2px solid #ef4444;
+}

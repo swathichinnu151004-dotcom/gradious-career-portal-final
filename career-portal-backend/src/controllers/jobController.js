@@ -1,13 +1,13 @@
 const db = require("../config/connectDB");
+const logger = require("../utils/logger");
+const {
+  onUserAppliedToJob,
+  onApplicationStatusForUser,
+} = require("../services/notificationService");
 
 // CREATE JOB
 exports.createJob = async (req, res) => {
   try {
-    console.log("Inside createJob");
-
-    // ✅ ADD HERE
-    console.log("USER:", req.user);
-
     const recruiterId = req.user.id;
 
     const { job_title, department, location, experience, description, status } = req.body;
@@ -26,8 +26,6 @@ exports.createJob = async (req, res) => {
       VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)
     `;
 
-    console.log("Before insert");
-
     const [result] = await db.query(query, [
       job_title,
       department,
@@ -38,51 +36,38 @@ exports.createJob = async (req, res) => {
       status || "ACTIVE"
     ]);
 
-    console.log("After insert");
-
     res.status(201).json({
       message: "Job created successfully",
       jobId: result.insertId
     });
 
   } catch (error) {
-    console.error("ERROR:", error);
+    logger.error("createJob failed:", error);
     res.status(500).json({ message: error.message });
   }
 };
-// GET ALL JOBS
+// GET ALL JOBS (browse / apply — omits jobs this user already applied to)
 exports.getAllJobs = async (req, res) => {
   try {
-    const [rows] = await db.query(`
-      SELECT id, job_title, department, location, experience, description, recruiter_id, posted_date, status
-      FROM jobs
-      ORDER BY posted_date DESC
-    `);
+    const userId = req.user.id;
+
+    const [rows] = await db.query(
+      `SELECT j.id, j.job_title, j.department, j.location, j.experience, j.description,
+              j.recruiter_id, j.posted_date, j.status
+       FROM jobs j
+       WHERE NOT EXISTS (
+         SELECT 1 FROM applications a
+         WHERE a.job_id = j.id AND a.user_id = ?
+       )
+       ORDER BY j.posted_date DESC`,
+      [userId]
+    );
 
     res.json(rows);
   } catch (error) {
-    console.log("Get all jobs error:", error);
+    logger.error("getAllJobs failed:", error);
     res.status(500).json({ message: "Error fetching jobs" });
   }
-};
-
-// GET LATEST JOBS
-exports.getLatestJobs = (req, res) => {
-  const sql = `
-    SELECT id, job_title, department, location, experience, description, recruiter_id, posted_date, status
-    FROM jobs
-    ORDER BY posted_date DESC
-    LIMIT 3
-  `;
-
-  db.query(sql, (err, results) => {
-    if (err) {
-      console.log("Latest jobs error:", err);
-      return res.status(500).json({ message: "Error fetching latest jobs" });
-    }
-
-    res.json(results);
-  });
 };
 
 // GET JOB BY ID
@@ -101,7 +86,7 @@ exports.getJobById = async (req, res) => {
     res.json(rows[0]);
 
   } catch (error) {
-    console.log("Get job by id error:", error);
+    logger.error("getJobById failed:", error);
     res.status(500).json({ message: "Error fetching job" });
   }
 };
@@ -136,7 +121,7 @@ exports.applyForJob = async (req, res) => {
 
     // Check job exists
     const [jobs] = await db.query(
-      "SELECT id, job_title FROM jobs WHERE id = ?",
+      "SELECT id, job_title, recruiter_id FROM jobs WHERE id = ?",
       [jobId]
     );
 
@@ -156,17 +141,30 @@ exports.applyForJob = async (req, res) => {
 
     const resumePath = req.file.filename;
 
-    await db.query(
+    const [insertApp] = await db.query(
       `INSERT INTO applications (user_id, job_id, resume, status, applied_date)
        VALUES (?, ?, ?, ?, NOW())`,
       [userId, jobId, resumePath, "Applied"]
     );
 
+    const applicationId = insertApp.insertId;
+    const applicantName = users[0].name || "A candidate";
+    const jobTitle = jobs[0].job_title;
+    const recruiterId = jobs[0].recruiter_id;
+
+    await onUserAppliedToJob({
+      applicationId,
+      applicantUserId: userId,
+      applicantName,
+      jobTitle,
+      recruiterId,
+    });
+
     return res.status(201).json({
       message: "Application submitted successfully"
     });
   } catch (error) {
-    console.error("Apply job error:", error);
+    logger.error("Apply job error:", error);
     return res.status(500).json({ message: "Server error while applying for job" });
   }
 };
@@ -191,7 +189,7 @@ exports.getMyApplications = async (req, res) => {
     res.json(rows);
 
   } catch (error) {
-    console.log("Get my applications error:", error);
+    logger.error("Get my applications error:", error);
     res.status(500).json({ message: "Error fetching applications" });
   }
 };
@@ -222,22 +220,47 @@ exports.searchJobs = async (req, res) => {
     res.json(rows);
 
   } catch (error) {
-    console.log("Search jobs error:", error);
+    logger.error("Search jobs error:", error);
     res.status(500).json({ message: "Error searching jobs" });
   }
 };
+/** SQL fragment: posted in the last 60 days (rolling), active openings only. `alias` e.g. "j" or "". */
+function latestPostedJobsWhere(alias) {
+  const a = alias ? `${alias}.` : "";
+  return `${a}posted_date IS NOT NULL
+    AND ${a}posted_date >= DATE_SUB(NOW(), INTERVAL 60 DAY)
+    AND LOWER(TRIM(COALESCE(${a}status, ''))) = 'active'`;
+}
+
 exports.getLatestJobs = async (req, res) => {
   try {
-    const [rows] = await db.query(`
-      SELECT * FROM jobs 
-      WHERE posted_date >= CURDATE() - INTERVAL 60 DAY
-      ORDER BY posted_date DESC
-    `);
+    const userId = req.user?.id;
+
+    // Authenticated: small widget list. Public home: up to 500 rows for expand/collapse.
+    const [rows] = userId
+      ? await db.query(
+          `SELECT j.*
+           FROM jobs j
+           WHERE ${latestPostedJobsWhere("j")}
+           AND NOT EXISTS (
+             SELECT 1 FROM applications a
+             WHERE a.job_id = j.id AND a.user_id = ?
+           )
+           ORDER BY j.posted_date DESC
+           LIMIT 3`,
+          [userId]
+        )
+      : await db.query(
+          `SELECT *
+           FROM jobs
+           WHERE ${latestPostedJobsWhere("")}
+           ORDER BY posted_date DESC
+           LIMIT 500`
+        );
 
     res.json(rows);
-
   } catch (error) {
-    console.log("Error fetching jobs:", error);
+    logger.error("Error fetching jobs:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -268,10 +291,32 @@ exports.updateApplicationStatus = async (req, res) => {
       return res.status(400).json({ message: "Invalid status" });
     }
 
+    const [appRows] = await db.query(
+      `SELECT a.user_id, j.job_title
+       FROM applications a
+       JOIN jobs j ON a.job_id = j.id
+       WHERE a.id = ?`,
+      [applicationId]
+    );
+
+    if (appRows.length === 0) {
+      return res.status(404).json({ message: "Application not found" });
+    }
+
     await db.query(
       "UPDATE applications SET status = ? WHERE id = ?",
       [status, applicationId]
     );
+
+    if (["Shortlisted", "Rejected"].includes(status)) {
+      await onApplicationStatusForUser({
+        userId: appRows[0].user_id,
+        jobTitle: appRows[0].job_title,
+        status,
+        applicationId: Number(applicationId),
+        senderId: req.user?.id ?? null,
+      });
+    }
 
     res.json({ message: "Status updated successfully" });
 
@@ -290,7 +335,23 @@ exports.getDepartmentStats = async (req, res) => {
     res.json(rows);
 
   } catch (error) {
-    console.error("Department Stats Error:", error);
+    logger.error("Department Stats Error:", error);
     res.status(500).json({ message: "Server error" });
+  }
+};
+exports.getDepartmentCounts = async (req, res) => {
+  try {
+    const [rows] = await db.query(`
+      SELECT department, COUNT(*) AS totalJobs
+      FROM jobs
+      WHERE status = 'ACTIVE'
+      GROUP BY department
+      ORDER BY totalJobs DESC, department ASC
+    `);
+
+    res.json(rows);
+  } catch (error) {
+    logger.error("Department counts error:", error);
+    res.status(500).json({ message: "Failed to fetch department counts" });
   }
 };

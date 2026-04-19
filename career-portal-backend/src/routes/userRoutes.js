@@ -6,6 +6,12 @@ const roleMiddleware = require("../middleware/roleMiddleware");
 const userController = require("../controllers/userController");
 const upload = require("../middleware/uploadResume");
 
+const {
+  getUserProfile,
+  updateUserProfile,
+} = require("../controllers/userController");
+
+
 // Dashboard summary
 router.get(
   "/dashboard-summary",
@@ -37,4 +43,6 @@ router.get(
   userController.getApplicationStats
 );
 
+router.get("/profile", verifyToken, roleMiddleware("user"), getUserProfile);
+router.put("/profile", verifyToken, roleMiddleware("user"), updateUserProfile);
 module.exports = router;

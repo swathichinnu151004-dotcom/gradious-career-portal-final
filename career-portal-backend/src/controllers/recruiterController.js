@@ -1,5 +1,12 @@
 const db = require("../config/connectDB");
-
+const logger = require("../utils/logger");
+const bcrypt = require("bcrypt");
+const sendMail = require("../utils/sendMail");
+const { createNotification } = require("../utils/createNotification");
+const {
+  onRecruiterPostedJob,
+  onApplicationStatusForUser,
+} = require("../services/notificationService");
 exports.getRecruiterDashboardSummary = async (req, res) => {
   try {
     const recruiterId = req.user.id;
@@ -13,7 +20,7 @@ exports.getRecruiterDashboardSummary = async (req, res) => {
     const activeJobsQuery = `
       SELECT COUNT(*) AS activeJobs
       FROM jobs
-      WHERE recruiter_id = ? AND status = 'ACTIVE'
+      WHERE recruiter_id = ? AND UPPER(status) = 'ACTIVE'
     `;
 
     const totalApplicationsQuery = `
@@ -23,30 +30,48 @@ exports.getRecruiterDashboardSummary = async (req, res) => {
       WHERE jobs.recruiter_id = ?
     `;
 
+    const appliedQuery = `
+      SELECT COUNT(*) AS appliedApplications
+      FROM applications
+      JOIN jobs ON applications.job_id = jobs.id
+      WHERE jobs.recruiter_id = ? AND LOWER(applications.status) = 'applied'
+    `;
+
     const shortlistedQuery = `
       SELECT COUNT(*) AS shortlistedApplications
       FROM applications
       JOIN jobs ON applications.job_id = jobs.id
-      WHERE jobs.recruiter_id = ? AND applications.status = 'Shortlisted'
+      WHERE jobs.recruiter_id = ? AND LOWER(applications.status) = 'shortlisted'
+    `;
+
+    const rejectedQuery = `
+      SELECT COUNT(*) AS rejectedApplications
+      FROM applications
+      JOIN jobs ON applications.job_id = jobs.id
+      WHERE jobs.recruiter_id = ? AND LOWER(applications.status) = 'rejected'
     `;
 
     const [result1] = await db.query(totalJobsQuery, [recruiterId]);
     const [result2] = await db.query(activeJobsQuery, [recruiterId]);
     const [result3] = await db.query(totalApplicationsQuery, [recruiterId]);
-    const [result4] = await db.query(shortlistedQuery, [recruiterId]);
+    const [result4] = await db.query(appliedQuery, [recruiterId]);
+    const [result5] = await db.query(shortlistedQuery, [recruiterId]);
+    const [result6] = await db.query(rejectedQuery, [recruiterId]);
 
     const summary = {
       totalJobs: result1[0]?.totalJobs || 0,
       activeJobs: result2[0]?.activeJobs || 0,
       totalApplications: result3[0]?.totalApplications || 0,
-      shortlistedApplications: result4[0]?.shortlistedApplications || 0
+      appliedApplications: result4[0]?.appliedApplications || 0,
+      shortlistedApplications: result5[0]?.shortlistedApplications || 0,
+      rejectedApplications: result6[0]?.rejectedApplications || 0,
     };
 
     return res.json(summary);
   } catch (error) {
-    console.error("Error fetching recruiter dashboard summary:", error);
+    logger.error("Error fetching recruiter dashboard summary:", error);
     return res.status(500).json({
-      message: "Server error while fetching dashboard summary"
+      message: "Server error while fetching dashboard summary",
     });
   }
 };
@@ -116,7 +141,7 @@ exports.getRecruiterJobs = async (req, res) => {
 
     res.status(200).json(jobs);
   } catch (error) {
-    console.error("Get recruiter jobs error:", error);
+    logger.error("Get recruiter jobs error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -142,7 +167,6 @@ exports.getRecruiterJobById = (req, res) => {
     res.json(result[0]);
   });
 };
-
 exports.createJob = async (req, res) => {
   try {
     if (!req.user || !req.user.id) {
@@ -155,6 +179,37 @@ exports.createJob = async (req, res) => {
 
     if (!job_title || !department || !location || !experience || !description) {
       return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const jt = String(job_title).trim();
+    const dept = String(department).trim();
+    const loc = String(location).trim();
+    const exp = String(experience).trim();
+    const desc = String(description).trim();
+    const jobStatus = (status || "ACTIVE").toString().trim() || "ACTIVE";
+
+    const titleKey = jt.toLowerCase();
+    const deptKey = dept.toLowerCase();
+    const locKey = loc.toLowerCase();
+    const expKey = exp.toLowerCase();
+
+    const [dupes] = await db.query(
+      `SELECT id FROM jobs
+       WHERE recruiter_id = ?
+         AND LOWER(TRIM(job_title)) = ?
+         AND LOWER(TRIM(department)) = ?
+         AND LOWER(TRIM(location)) = ?
+         AND LOWER(TRIM(COALESCE(experience, ''))) = ?
+         AND LOWER(TRIM(COALESCE(status, ''))) = 'active'
+       LIMIT 1`,
+      [recruiterId, titleKey, deptKey, locKey, expKey]
+    );
+
+    if (dupes.length > 0) {
+      return res.status(409).json({
+        message:
+          "You already have an active listing with the same job title, department, location, and experience. Edit or close that job before posting again.",
+      });
     }
 
     const query = `
@@ -172,14 +227,20 @@ exports.createJob = async (req, res) => {
     `;
 
     const [result] = await db.query(query, [
-      job_title,
-      department,
-      location,
-      experience,
-      description,
+      jt,
+      dept,
+      loc,
+      exp,
+      desc,
       recruiterId,
-      status || "ACTIVE"
+      jobStatus
     ]);
+
+    await onRecruiterPostedJob({
+      recruiterId,
+      jobId: result.insertId,
+      jobTitle: jt,
+    });
 
     res.status(201).json({
       message: "Job created successfully",
@@ -187,7 +248,7 @@ exports.createJob = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Create job error:", error);
+    logger.error("Create job error:", error);
     res.status(500).json({
       message: "Server error",
       error: error.message
@@ -228,51 +289,89 @@ exports.updateJob = async (req, res) => {
       return res.status(404).json({ message: "Job not found or unauthorized" });
     }
 
+    await createNotification({
+      userId: recruiterId,
+      role: "recruiter",
+      title: "Job Updated",
+      message: `Your job "${job_title}" was updated successfully`,
+      type: "job",
+      relatedId: jobId,
+    });
+
     res.status(200).json({ message: "Job updated successfully" });
   } catch (error) {
-    console.error("Update job error:", error);
+    logger.error("Update job error:", error);
     res.status(500).json({ message: "Server error" });
   }
 };
 exports.deleteJob = async (req, res) => {
   try {
+    const recruiterId = req.user.id;
     const jobId = req.params.id;
 
-    await db.query("DELETE FROM jobs WHERE id = ?", [jobId]);
+    const [jobRows] = await db.query(
+      `SELECT job_title FROM jobs WHERE id = ? AND recruiter_id = ?`,
+      [jobId, recruiterId]
+    );
+
+    if (jobRows.length === 0) {
+      return res.status(404).json({ message: "Job not found or unauthorized" });
+    }
+
+    const jobTitle = jobRows[0].job_title;
+
+    await db.query(
+      "DELETE FROM jobs WHERE id = ? AND recruiter_id = ?",
+      [jobId, recruiterId]
+    );
+
+    await createNotification({
+      userId: recruiterId,
+      role: "recruiter",
+      title: "Job Deleted",
+      message: `Your job "${jobTitle}" was deleted successfully`,
+      type: "job",
+      relatedId: jobId,
+    });
 
     res.json({ message: "Job deleted successfully" });
 
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     res.status(500).json({ message: "Error deleting job" });
   }
 };
-
 // Recruiter applications
 exports.getApplications = async (req, res) => {
   try {
     const recruiterId = req.user.id;
 
-    const query = `
+    const [results] = await db.query(
+      `
       SELECT 
         a.id,
         a.status,
         a.applied_date,
         u.name AS applicant_name,
-        u.email AS applicant_email,
-        j.job_title
+        u.email,
+        u.phone,
+        j.job_title,
+        j.department,
+        j.location,
+        j.experience,
+        a.resume
       FROM applications a
-      INNER JOIN jobs j ON a.job_id = j.id
       INNER JOIN users u ON a.user_id = u.id
+      INNER JOIN jobs j ON a.job_id = j.id
       WHERE j.recruiter_id = ?
       ORDER BY a.applied_date DESC
-    `;
-
-    const [results] = await db.query(query, [recruiterId]);
+      `,
+      [recruiterId]
+    );
 
     return res.status(200).json(results);
   } catch (error) {
-    console.error("Error fetching recruiter applications:", error);
+    logger.error("Error fetching recruiter applications:", error);
     return res.status(500).json({ message: "Failed to fetch recruiter applications" });
   }
 };
@@ -308,83 +407,205 @@ exports.getApplicationById = (req, res) => {
     res.json(result[0]);
   });
 };
-
 exports.updateApplicationStatus = async (req, res) => {
   try {
     const recruiterId = req.user.id;
     const applicationId = req.params.id;
-    let { status } = req.body;
+    const { status } = req.body;
 
-    if (!status) {
-      return res.status(400).json({ message: "Status is required" });
-    }
-
-    status = String(status).trim().toLowerCase();
-
-    const statusMap = {
-      applied: "Applied",
-      pending: "Pending",
-      shortlisted: "Shortlisted",
-      rejected: "Rejected"
-    };
-
-    if (!statusMap[status]) {
+    if (!["Shortlisted", "Rejected"].includes(status)) {
       return res.status(400).json({ message: "Invalid status value" });
     }
 
-    const finalStatus = statusMap[status];
-
-    const checkQuery = `
-      SELECT a.id, a.status, a.user_id
-      FROM applications a
-      INNER JOIN jobs j ON a.job_id = j.id
-      WHERE a.id = ? AND j.recruiter_id = ?
-    `;
-
-    const [rows] = await db.query(checkQuery, [applicationId, recruiterId]);
+   const [rows] = await db.query(
+  `
+  SELECT 
+  a.id,
+  a.user_id,
+  a.status AS current_status,
+  u.name AS applicant_name,
+  u.email AS applicant_email,
+  j.job_title,
+  j.department,
+  j.location,
+  j.experience
+  FROM applications a
+  INNER JOIN users u ON a.user_id = u.id
+  INNER JOIN jobs j ON a.job_id = j.id
+  WHERE a.id = ? AND j.recruiter_id = ?
+  `,
+  [applicationId, recruiterId]
+);
 
     if (rows.length === 0) {
-      return res.status(404).json({
-        message: "Application not found or not authorized to update"
+      return res.status(404).json({ message: "Application not found" });
+    }
+
+    const application = rows[0];
+
+    if (application.current_status === status) {
+      return res.status(400).json({
+        message: `Application already ${status.toLowerCase()}`,
       });
     }
 
-    const currentStatus = rows[0].status;
-    const applicationUserId = rows[0].user_id;
+    await db.query(
+      `UPDATE applications SET status = ?, updated_at = NOW() WHERE id = ?`,
+      [status, applicationId]
+    );
 
-    const updateQuery = `
-      UPDATE applications
-      SET status = ?
-      WHERE id = ?
-    `;
+    await onApplicationStatusForUser({
+      userId: application.user_id,
+      jobTitle: application.job_title,
+      status,
+      applicationId,
+      senderId: recruiterId,
+    });
 
-    await db.query(updateQuery, [finalStatus, applicationId]);
+    // Email content
+    let subject = "";
+    let text = "";
+    let html = "";
 
-    if (finalStatus === "Shortlisted" || finalStatus === "Rejected") {
-      await db.query(
-        `INSERT INTO notifications (user_id, title, message, type, is_read, created_at)
-         VALUES (?, ?, ?, ?, ?, NOW())`,
-        [
-          applicationUserId,
-          "Application Status Updated",
-          finalStatus === "Shortlisted"
-            ? "Congratulations! You have been shortlisted for the job."
-            : "Your application has been rejected.",
-          finalStatus === "Shortlisted" ? "success" : "error",
-          0
-        ]
-      );
+    if (status === "Shortlisted") {
+      subject = "Application Update – Shortlisted";
+
+      text = `Dear ${application.applicant_name},
+
+We are pleased to inform you that your application for the position of ${application.job_title} has been shortlisted.
+
+Our recruitment team will review your profile further and contact you with the next steps shortly.
+
+Please keep an eye on your email for further communication.
+
+Regards,
+Recruitment Team
+Gradious Careers Portal
+
+This is an automated email. Please do not reply.
+For support, contact: gradiousrecruitment@gmail.com`;
+
+      html = `
+        <div style="font-family: Arial, sans-serif; background:#f4f6f9; padding:24px;">
+          <div style="max-width:600px; margin:auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.08);">
+
+            <div style="background:#0f3d91; color:#ffffff; padding:16px 24px; font-size:20px; font-weight:bold;">
+              Gradious Careers Portal
+            </div>
+
+            <div style="padding:24px; color:#1f2937; line-height:1.7;">
+              <p style="margin:0 0 16px;">Dear <strong>${application.applicant_name}</strong>,</p>
+
+              <p style="margin:0 0 16px;">
+                We are pleased to inform you that your application for the position of
+                <strong>${application.job_title}</strong> has been
+                <span style="color:#15803d; font-weight:bold;">shortlisted</span>.
+              </p>
+
+              <p style="margin:0 0 16px;">
+                Our recruitment team will review your profile further and contact you with the next steps shortly.
+              </p>
+
+              <p style="margin:0 0 16px;">
+                Please keep an eye on your email for further communication.
+              </p>
+
+              <p style="margin:24px 0 0;">
+                Regards,<br/>
+                <strong>Recruitment Team</strong><br/>
+                Gradious Careers Portal
+              </p>
+            </div>
+
+            <div style="background:#f8fafc; padding:14px 24px; font-size:12px; color:#6b7280; border-top:1px solid #e5e7eb;">
+              This is an automated email. Please do not reply.<br/>
+              For support, contact: gradiousrecruitment@gmail.com
+            </div>
+          </div>
+        </div>
+      `;
+    } else if (status === "Rejected") {
+      subject = "Application Update – Not Selected";
+
+      text = `Dear ${application.applicant_name},
+
+Thank you for applying for the position of ${application.job_title}.
+
+After carefully reviewing your profile, we regret to inform you that you were not selected for this opportunity.
+
+We sincerely appreciate your interest in Gradious Careers Portal and encourage you to apply for future openings that match your profile.
+
+Regards,
+Recruitment Team
+Gradious Careers Portal
+
+This is an automated email. Please do not reply.
+For support, contact: gradiousrecruitment@gmail.com`;
+
+      html = `
+        <div style="font-family: Arial, sans-serif; background:#f4f6f9; padding:24px;">
+          <div style="max-width:600px; margin:auto; background:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 14px rgba(0,0,0,0.08);">
+
+            <div style="background:#0f3d91; color:#ffffff; padding:16px 24px; font-size:20px; font-weight:bold;">
+              Gradious Careers Portal
+            </div>
+
+            <div style="padding:24px; color:#1f2937; line-height:1.7;">
+              <p style="margin:0 0 16px;">Dear <strong>${application.applicant_name}</strong>,</p>
+
+              <p style="margin:0 0 16px;">
+                Thank you for applying for the position of
+                <strong>${application.job_title}</strong>.
+              </p>
+
+              <p style="margin:0 0 16px;">
+                After carefully reviewing your profile, we regret to inform you that you were
+                <span style="color:#dc2626; font-weight:bold;">not selected</span> for this opportunity.
+              </p>
+
+              <p style="margin:0 0 16px;">
+                We sincerely appreciate your interest in Gradious Careers Portal and encourage you to apply for future openings that match your profile.
+              </p>
+
+              <p style="margin:24px 0 0;">
+                Regards,<br/>
+                <strong>Recruitment Team</strong><br/>
+                Gradious Careers Portal
+              </p>
+            </div>
+
+            <div style="background:#f8fafc; padding:14px 24px; font-size:12px; color:#6b7280; border-top:1px solid #e5e7eb;">
+              This is an automated email. Please do not reply.<br/>
+              For support, contact: gradiousrecruitment@gmail.com
+            </div>
+          </div>
+        </div>
+      `;
     }
 
-    return res.status(200).json({
-      message: "Application status updated successfully",
-      oldStatus: currentStatus,
-      newStatus: finalStatus
-    });
+    // Send email
+    try {
+      await sendMail({
+        to: application.applicant_email,
+        subject,
+        text,
+        html,
+      });
+
+      return res.status(200).json({
+        message: `Application ${status.toLowerCase()} successfully and email sent`,
+      });
+    } catch (mailError) {
+      logger.error("Mail send error:", mailError);
+
+      return res.status(200).json({
+        message: `Application ${status.toLowerCase()} successfully, but email could not be sent`,
+      });
+    }
   } catch (error) {
-    console.error("Update application status error:", error);
+    logger.error("Error updating application status:", error);
     return res.status(500).json({
-      message: "Failed to update application status"
+      message: "Failed to update application status",
     });
   }
 };
@@ -395,129 +616,127 @@ exports.validateInviteToken = (req, res) => {
   const { token } = req.query;
 
   if (!token) {
-    return res.status(400).json({
-      message: "Token is required"
-    });
+    return res.status(400).json({ message: "Token is required" });
   }
 
-  const sql = "SELECT id, email, status, token FROM recruiter_invites WHERE token = ?";
+  const sql = `
+    SELECT * FROM recruiter_invites
+    WHERE token = ? AND status = 'Pending'
+  `;
 
-  db.query(sql, [token], (err, rows) => {
+  db.query(sql, [token], (err, results) => {
     if (err) {
-      return res.status(500).json({
-        message: "Server error while validating invite link"
-      });
+      logger.error("Validate invite token error:", err);
+      return res.status(500).json({ message: "Database error" });
     }
 
-    if (rows.length === 0) {
-      return res.status(404).json({
-        message: "Invalid invite link"
-      });
-    }
-
-    const invite = rows[0];
-
-    if (invite.status !== "Pending") {
-      return res.status(400).json({
-        message: "Invite link is already used or expired"
-      });
+    if (results.length === 0) {
+      return res.status(400).json({ message: "Invalid or expired invite token" });
     }
 
     return res.status(200).json({
-      message: "Invite link is valid",
-      email: invite.email
+      message: "Valid invite token",
+      email: results[0].email
     });
   });
 };
 // ===============================
 // Complete recruiter signup
 // ===============================
+
 exports.completeRecruiterSignup = async (req, res) => {
-  const { token, name, phone, password, company_name, location } = req.body;
-
   try {
-    console.log("STEP 1 - Incoming token:", token);
+    const { token, name, password, company_name, phone, location } = req.body;
 
-    if (!token || !name || !phone || !password) {
-      console.log("STEP 2 - Missing required fields");
-      return res.status(400).json({
-        message: "Token, name, phone and password are required"
-      });
+    if (!token || !name || !password || !company_name || !phone || !location) {
+      return res.status(400).json({ message: "All fields are required" });
     }
 
-    const [inviteRows] = await db.query(
-      "SELECT * FROM recruiter_invites WHERE token = ?",
+    const [inviteResults] = await db.query(
+      "SELECT * FROM recruiter_invites WHERE token = ? AND status = 'Pending'",
       [token]
     );
 
-    console.log("STEP 3 - Invite rows found:", inviteRows.length);
-
-    if (inviteRows.length === 0) {
-      console.log("STEP 4 - Invalid token, no invite found");
-      return res.status(400).json({
-        message: "Invalid or expired invite link"
-      });
+    if (inviteResults.length === 0) {
+      return res.status(400).json({ message: "Invalid or expired invite token" });
     }
 
-    const invite = inviteRows[0];
-    const email = invite.email;
+    const invitedEmail = inviteResults[0].email;
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    console.log("STEP 5 - Invite row:", invite);
-
-    const [existingUser] = await db.query(
-      "SELECT id FROM users WHERE email = ?",
-      [email]
+    const [recruiterResults] = await db.query(
+      "SELECT * FROM recruiters WHERE email = ?",
+      [invitedEmail]
     );
 
-    console.log("STEP 6 - Existing users found:", existingUser.length);
-
-    if (existingUser.length > 0) {
-      console.log("STEP 7 - User already exists, updating invite to Accepted");
-
-      const [updateResult] = await db.query(
-        "UPDATE recruiter_invites SET status = 'Accepted' WHERE email = ?",
-        [email]
+    if (recruiterResults.length > 0) {
+      await db.query(
+        `UPDATE recruiters
+         SET name = ?, password = ?, company_name = ?, phone = ?, location = ?, status = 'Active'
+         WHERE email = ?`,
+        [name, hashedPassword, company_name, phone, location, invitedEmail]
       );
-
-      console.log("STEP 8 - Update result:", updateResult);
-
-      return res.status(200).json({
-        message: "This recruiter account already exists. Please login instead."
-      });
+    } else {
+      await db.query(
+        `INSERT INTO recruiters
+        (name, email, password, company_name, phone, location, role, status, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, 'recruiter', 'Active', NOW())`,
+        [name, invitedEmail, hashedPassword, company_name, phone, location]
+      );
     }
 
-    console.log("STEP 9 - Inserting recruiter into users");
-
-    const [insertResult] = await db.query(
-      `INSERT INTO users (name, email, phone, password, role, status)
-       VALUES (?, ?, ?, ?, 'recruiter', 'Active')`,
-      [name, email, phone, password]
+    await db.query(
+      "UPDATE recruiter_invites SET status = 'Accepted' WHERE token = ?",
+      [token]
     );
-
-    console.log("STEP 10 - Insert result:", insertResult);
-
-    const [updateResult] = await db.query(
-      "UPDATE recruiter_invites SET status = 'Accepted' WHERE email = ?",
-      [email]
-    );
-
-    console.log("STEP 11 - Update result:", updateResult);
-
-    const [updatedInvite] = await db.query(
-      "SELECT id, email, token, status FROM recruiter_invites WHERE email = ?",
-      [email]
-    );
-
-    console.log("STEP 12 - Updated invite row:", updatedInvite);
 
     return res.status(201).json({
       message: "Recruiter signup completed successfully"
     });
+  } catch (error) {
+    logger.error("Complete recruiter signup error:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+exports.getRecruiterProfile = async (req, res) => {
+  try {
+    const recruiterId = req.user?.id;
+
+    if (!recruiterId) {
+      logger.warn("getRecruiterProfile: missing recruiter id in token");
+      return res.status(400).json({ message: "Invalid token" });
+    }
+
+    const [rows] = await db.query(
+      `SELECT 
+        id,
+        name,
+        email,
+        phone,
+        company_name,
+        location,
+        status
+       FROM recruiters
+       WHERE id = ?`,
+      [recruiterId]
+    );
+
+    if (!rows || rows.length === 0) {
+      logger.warn("getRecruiterProfile: recruiter not found", { recruiterId });
+
+      return res.status(404).json({
+        message: "Recruiter not found",
+        recruiterId,
+      });
+    }
+
+    return res.status(200).json(rows[0]);
 
   } catch (error) {
-    console.error("Complete recruiter signup error:", error);
+    logger.error("getRecruiterProfile failed:", error);
     return res.status(500).json({
-      message: "Server error while creating recruiter account"
+      message: "Server error",
+      error: error.message,
     });
   }
 };

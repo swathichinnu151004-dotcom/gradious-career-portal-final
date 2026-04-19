@@ -6,6 +6,11 @@ const roleMiddleware = require("../middleware/roleMiddleware");
 const jobController = require("../controllers/jobController");
 const userController = require("../controllers/userController");
 const upload = require("../middleware/uploadResume");
+const {
+  getDepartmentCounts,
+} = require("../controllers/jobController");
+
+router.get("/department-counts", getDepartmentCounts);
 
 // CREATE JOB
 router.post("/jobs", verifyToken, roleMiddleware("user"), jobController.createJob);

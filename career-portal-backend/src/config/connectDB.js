@@ -1,4 +1,5 @@
 const mysql = require("mysql2/promise");
+const logger = require("../utils/logger");
 require("dotenv").config();
 
 const db = mysql.createPool({
@@ -14,10 +15,10 @@ const db = mysql.createPool({
 // ✅ Test DB connection
 db.query("SELECT 1")
   .then(() => {
-    console.log("✅ Database connected");
+    logger.info("Database pool ready (SELECT 1 OK)");
   })
   .catch((err) => {
-    console.error("❌ DB connection error:", err);
+    logger.error("Database connection check failed:", err);
   });
 
 module.exports = db;

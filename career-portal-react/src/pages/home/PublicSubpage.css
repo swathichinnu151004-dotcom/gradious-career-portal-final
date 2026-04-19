@@ -1,0 +1,143 @@
+a.home-logo {
+  text-decoration: none;
+  color: inherit;
+}
+
+.subpage-main {
+  flex: 1;
+  padding: 48px 24px 72px;
+  background: #f4f7fb;
+}
+
+.subpage-inner {
+  width: 90%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.subpage-inner--narrow {
+  max-width: 720px;
+}
+
+.subpage-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: #11284a;
+  margin-bottom: 10px;
+}
+
+.subpage-lead {
+  font-size: 16px;
+  color: #4b5563;
+  line-height: 1.6;
+  margin-bottom: 28px;
+}
+
+.subpage-cards {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.subpage-card {
+  background: linear-gradient(180deg, #17335d, #11284a);
+  color: #ffffff;
+  border-radius: 12px;
+  padding: 24px 22px;
+  box-shadow: 0 12px 32px rgba(17, 40, 74, 0.2);
+}
+
+.subpage-card-title {
+  font-size: 17px;
+  font-weight: 600;
+  margin-bottom: 14px;
+  color: #ffffff;
+}
+
+.subpage-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0;
+  color: #e5e7eb;
+  font-size: 15px;
+}
+
+.subpage-icon {
+  font-size: 16px;
+}
+
+.subpage-row a {
+  color: #e5e7eb;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.subpage-row a:hover {
+  color: #9fc0ff;
+}
+
+.subpage-back {
+  margin-top: 36px;
+}
+
+.subpage-back a {
+  color: #2f5bea;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.subpage-back a:hover {
+  text-decoration: underline;
+}
+
+.subpage-prose {
+  font-size: 15px;
+  line-height: 1.7;
+  color: #374151;
+}
+
+.subpage-prose h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #11284a;
+  margin: 28px 0 10px;
+}
+
+.subpage-prose h2:first-child {
+  margin-top: 0;
+}
+
+.subpage-prose p {
+  margin: 0 0 14px;
+}
+
+.subpage-prose ul {
+  margin: 0 0 14px 1.25rem;
+  padding: 0;
+}
+
+.subpage-prose li {
+  margin-bottom: 6px;
+}
+
+.subpage-prose a {
+  color: #2f5bea;
+  text-decoration: none;
+}
+
+.subpage-prose a:hover {
+  text-decoration: underline;
+}
+
+.subpage-prose .subpage-muted {
+  font-size: 14px;
+  color: #6b7280;
+  font-style: italic;
+}
+
+@media (max-width: 768px) {
+  .subpage-title {
+    font-size: 26px;
+  }
+}

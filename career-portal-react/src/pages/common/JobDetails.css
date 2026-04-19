@@ -1,0 +1,161 @@
+* {
+  box-sizing: border-box;
+}
+
+/* Page */
+.job-details-section {
+  min-height: 100vh;
+  padding: 60px 20px;
+  background: linear-gradient(135deg, #eef2f7, #f8fafc);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Container */
+.container {
+  width: 100%;
+  max-width: 1300px; /* or 1300px */
+  margin: 0 auto;
+  padding: 0 20px;
+}
+/* Card */
+.job-details-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 40px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  transition: 0.3s ease;
+}
+
+/* Title */
+.job-details-card h2 {
+  font-size: 30px;
+  font-weight: 700;
+  color: #1e3a8a;
+  margin-bottom: 25px;
+}
+
+/* Text */
+.job-details-card p {
+  font-size: 17px;
+  color: #374151;
+  margin-bottom: 14px;
+  line-height: 1.6;
+}
+
+/* Description */
+.job-description {
+  color: #555;
+  margin-top: 5px;
+}
+
+/* Actions */
+.job-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+  flex-wrap: wrap;
+}
+
+/* Buttons */
+.back-btn,
+.apply-btn {
+  border: none;
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+/* Back Button */
+.back-btn {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.back-btn:hover {
+  background: #d1d5db;
+}
+
+/* Apply Button */
+.apply-btn {
+  background: linear-gradient(90deg, #2563eb, #3b82f6);
+  color: #ffffff;
+}
+
+.apply-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.3);
+}
+
+/* Disabled */
+.apply-btn:disabled {
+  background: #9ca3af !important;
+  cursor: not-allowed;
+}
+
+/* Applied state */
+.applied-btn {
+  background: #6b7280 !important;
+}
+
+/* Error */
+.error-text {
+  color: #dc2626;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .job-details-card {
+    padding: 25px;
+  }
+
+  .job-details-card h2 {
+    font-size: 24px;
+  }
+
+  .job-details-card p {
+    font-size: 15px;
+  }
+
+  .job-actions {
+    flex-direction: column;
+  }
+
+  .back-btn,
+  .apply-btn {
+    width: 100%;
+  }
+}
+.resume-upload-section {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+.resume-label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #1f2937;
+}
+
+.resume-upload-section input[type="file"] {
+  display: block;
+  padding: 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #fff;
+  width: 100%;
+  max-width: 380px;
+}
+
+.resume-file-name {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #2563eb;
+  font-weight: 500;
+}
