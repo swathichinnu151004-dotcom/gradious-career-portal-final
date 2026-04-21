@@ -2,6 +2,15 @@ const db = require("../config/connectDB");
 const logger = require("../utils/logger");
 const bcrypt = require("bcrypt");
 const sendMail = require("../utils/sendMail");
+
+/** JWT `id` must match `recruiters.id` (numeric). */
+function recruiterIdFromRequest(req) {
+  const raw = req.user?.id;
+  if (raw === undefined || raw === null || raw === "") return null;
+  if (typeof raw === "number" && Number.isFinite(raw)) return raw;
+  const n = Number.parseInt(String(raw), 10);
+  return Number.isFinite(n) ? n : null;
+}
 const { createNotification } = require("../utils/createNotification");
 const {
   onRecruiterPostedJob,
@@ -9,7 +18,10 @@ const {
 } = require("../services/notificationService");
 exports.getRecruiterDashboardSummary = async (req, res) => {
   try {
-    const recruiterId = req.user.id;
+    const recruiterId = recruiterIdFromRequest(req);
+    if (recruiterId == null) {
+      return res.status(400).json({ message: "Invalid token" });
+    }
 
     const totalJobsQuery = `
       SELECT COUNT(*) AS totalJobs
@@ -51,12 +63,22 @@ exports.getRecruiterDashboardSummary = async (req, res) => {
       WHERE jobs.recruiter_id = ? AND LOWER(applications.status) = 'rejected'
     `;
 
-    const [result1] = await db.query(totalJobsQuery, [recruiterId]);
-    const [result2] = await db.query(activeJobsQuery, [recruiterId]);
-    const [result3] = await db.query(totalApplicationsQuery, [recruiterId]);
-    const [result4] = await db.query(appliedQuery, [recruiterId]);
-    const [result5] = await db.query(shortlistedQuery, [recruiterId]);
-    const [result6] = await db.query(rejectedQuery, [recruiterId]);
+    const p = [recruiterId];
+    const [
+      [result1],
+      [result2],
+      [result3],
+      [result4],
+      [result5],
+      [result6],
+    ] = await Promise.all([
+      db.query(totalJobsQuery, p),
+      db.query(activeJobsQuery, p),
+      db.query(totalApplicationsQuery, p),
+      db.query(appliedQuery, p),
+      db.query(shortlistedQuery, p),
+      db.query(rejectedQuery, p),
+    ]);
 
     const summary = {
       totalJobs: result1[0]?.totalJobs || 0,
@@ -75,46 +97,84 @@ exports.getRecruiterDashboardSummary = async (req, res) => {
     });
   }
 };
-// Recruiter profile
-exports.getProfile = (req, res) => {
-  const recruiterId = req.user.id;
-
-  const sql = `
+// Recruiter profile (legacy — routes use getRecruiterProfile / async updateProfile)
+exports.getProfile = async (req, res) => {
+  try {
+    const recruiterId = req.user.id;
+    const sql = `
     SELECT id, name, email, phone, city, qualification, role, status
     FROM users
     WHERE id = ? AND role = 'recruiter'
   `;
-
-  db.query(sql, [recruiterId], (err, result) => {
-    if (err) {
-      return res.status(500).json({ message: "Error fetching recruiter profile" });
-    }
-
-    if (result.length === 0) {
+    const [result] = await db.query(sql, [recruiterId]);
+    if (!result.length) {
       return res.status(404).json({ message: "Recruiter not found" });
     }
-
-    res.json(result[0]);
-  });
+    return res.json(result[0]);
+  } catch (err) {
+    logger.error("getProfile error:", err);
+    return res.status(500).json({ message: "Error fetching recruiter profile" });
+  }
 };
 
-exports.updateProfile = (req, res) => {
-  const recruiterId = req.user.id;
-  const { name, phone, city, qualification } = req.body;
-
-  const sql = `
-    UPDATE users
-    SET name = ?, phone = ?, city = ?, qualification = ?
-    WHERE id = ? AND role = 'recruiter'
-  `;
-
-  db.query(sql, [name, phone, city, qualification, recruiterId], (err) => {
-    if (err) {
-      return res.status(500).json({ message: "Error updating recruiter profile" });
+/** PUT /api/recruiter/profile — must use promise pool (callback style leaks connections). */
+exports.updateProfile = async (req, res) => {
+  try {
+    const recruiterId = recruiterIdFromRequest(req);
+    if (recruiterId == null) {
+      return res.status(400).json({ message: "Invalid token" });
     }
 
-    res.json({ message: "Profile updated successfully" });
-  });
+    const { name, email, phone, company_name, location } = req.body || {};
+
+    const nameV = name != null ? String(name).trim() : "";
+    const emailV = email != null ? String(email).trim() : "";
+    const phoneV = phone != null ? String(phone).trim() : "";
+    const companyV =
+      company_name != null ? String(company_name).trim() : "";
+    const locationV = location != null ? String(location).trim() : "";
+
+    if (!emailV) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const [dup] = await db.query(
+      `SELECT id FROM recruiters WHERE LOWER(TRIM(email)) = LOWER(TRIM(?)) AND id <> ? LIMIT 1`,
+      [emailV, recruiterId]
+    );
+    if (dup.length > 0) {
+      return res.status(409).json({
+        message: "That email is already used by another recruiter account.",
+      });
+    }
+
+    const [result] = await db.query(
+      `UPDATE recruiters
+       SET name = ?, email = ?, phone = ?, company_name = ?, location = ?
+       WHERE id = ?`,
+      [nameV, emailV, phoneV, companyV, locationV, recruiterId]
+    );
+
+    if (result.affectedRows === 0) {
+      const [exists] = await db.query(
+        "SELECT id FROM recruiters WHERE id = ? LIMIT 1",
+        [recruiterId]
+      );
+      if (!exists.length) {
+        return res.status(404).json({ message: "Recruiter not found" });
+      }
+    }
+
+    return res.json({ message: "Profile updated successfully" });
+  } catch (err) {
+    logger.error("updateProfile error:", err);
+    if (err && err.code === "ER_DUP_ENTRY") {
+      return res.status(409).json({
+        message: "That email is already registered. Choose a different email.",
+      });
+    }
+    return res.status(500).json({ message: "Error updating recruiter profile" });
+  }
 };
 
 // Recruiter jobs
@@ -145,27 +205,24 @@ exports.getRecruiterJobs = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
-exports.getRecruiterJobById = (req, res) => {
-  const recruiterId = req.user.id;
-  const jobId = req.params.id;
-
-  const sql = `
+exports.getRecruiterJobById = async (req, res) => {
+  try {
+    const recruiterId = req.user.id;
+    const jobId = req.params.id;
+    const sql = `
     SELECT *
     FROM jobs
     WHERE id = ? AND recruiter_id = ?
   `;
-
-  db.query(sql, [jobId, recruiterId], (err, result) => {
-    if (err) {
-      return res.status(500).json({ message: "Error fetching job details" });
-    }
-
-    if (result.length === 0) {
+    const [result] = await db.query(sql, [jobId, recruiterId]);
+    if (!result.length) {
       return res.status(404).json({ message: "Job not found" });
     }
-
-    res.json(result[0]);
-  });
+    return res.json(result[0]);
+  } catch (err) {
+    logger.error("getRecruiterJobById error:", err);
+    return res.status(500).json({ message: "Error fetching job details" });
+  }
 };
 exports.createJob = async (req, res) => {
   try {
@@ -375,11 +432,11 @@ exports.getApplications = async (req, res) => {
     return res.status(500).json({ message: "Failed to fetch recruiter applications" });
   }
 };
-exports.getApplicationById = (req, res) => {
-  const recruiterId = req.user.id;
-  const applicationId = req.params.id;
-
-  const sql = `
+exports.getApplicationById = async (req, res) => {
+  try {
+    const recruiterId = req.user.id;
+    const applicationId = req.params.id;
+    const sql = `
     SELECT 
       applications.id,
       applications.user_id,
@@ -394,18 +451,15 @@ exports.getApplicationById = (req, res) => {
     JOIN jobs ON applications.job_id = jobs.id
     WHERE applications.id = ? AND jobs.recruiter_id = ?
   `;
-
-  db.query(sql, [applicationId, recruiterId], (err, result) => {
-    if (err) {
-      return res.status(500).json({ message: "Error fetching application details" });
-    }
-
-    if (result.length === 0) {
+    const [result] = await db.query(sql, [applicationId, recruiterId]);
+    if (!result.length) {
       return res.status(404).json({ message: "Application not found" });
     }
-
-    res.json(result[0]);
-  });
+    return res.json(result[0]);
+  } catch (err) {
+    logger.error("getApplicationById error:", err);
+    return res.status(500).json({ message: "Error fetching application details" });
+  }
 };
 exports.updateApplicationStatus = async (req, res) => {
   try {
@@ -612,33 +666,28 @@ For support, contact: gradiousrecruitment@gmail.com`;
 // ===============================
 // Validate recruiter invite token
 // ===============================
-exports.validateInviteToken = (req, res) => {
-  const { token } = req.query;
-
-  if (!token) {
-    return res.status(400).json({ message: "Token is required" });
-  }
-
-  const sql = `
+exports.validateInviteToken = async (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) {
+      return res.status(400).json({ message: "Token is required" });
+    }
+    const sql = `
     SELECT * FROM recruiter_invites
     WHERE token = ? AND status = 'Pending'
   `;
-
-  db.query(sql, [token], (err, results) => {
-    if (err) {
-      logger.error("Validate invite token error:", err);
-      return res.status(500).json({ message: "Database error" });
-    }
-
+    const [results] = await db.query(sql, [token]);
     if (results.length === 0) {
       return res.status(400).json({ message: "Invalid or expired invite token" });
     }
-
     return res.status(200).json({
       message: "Valid invite token",
-      email: results[0].email
+      email: results[0].email,
     });
-  });
+  } catch (err) {
+    logger.error("Validate invite token error:", err);
+    return res.status(500).json({ message: "Database error" });
+  }
 };
 // ===============================
 // Complete recruiter signup
@@ -699,10 +748,10 @@ exports.completeRecruiterSignup = async (req, res) => {
   }
 };
 exports.getRecruiterProfile = async (req, res) => {
+  const started = Date.now();
   try {
-    const recruiterId = req.user?.id;
-
-    if (!recruiterId) {
+    const idParam = recruiterIdFromRequest(req);
+    if (idParam == null) {
       logger.warn("getRecruiterProfile: missing recruiter id in token");
       return res.status(400).json({ message: "Invalid token" });
     }
@@ -718,15 +767,23 @@ exports.getRecruiterProfile = async (req, res) => {
         status
        FROM recruiters
        WHERE id = ?`,
-      [recruiterId]
+      [idParam]
     );
 
+    const elapsed = Date.now() - started;
+    if (elapsed > 1500) {
+      logger.warn("getRecruiterProfile: slow response", {
+        recruiterId: idParam,
+        ms: elapsed,
+      });
+    }
+
     if (!rows || rows.length === 0) {
-      logger.warn("getRecruiterProfile: recruiter not found", { recruiterId });
+      logger.warn("getRecruiterProfile: recruiter not found", { recruiterId: idParam });
 
       return res.status(404).json({
         message: "Recruiter not found",
-        recruiterId,
+        recruiterId: idParam,
       });
     }
 

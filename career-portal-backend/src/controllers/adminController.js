@@ -2,6 +2,10 @@ const db = require("../config/connectDB");
 const logger = require("../utils/logger");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendMail");
+const {
+  assertFrontendUrlOkForEmailLinks,
+  recruiterSignupInviteUrl,
+} = require("../utils/frontendPublicUrl");
 const { onApplicationStatusForUser } = require("../services/notificationService");
 
 exports.resendInvite = async (req, res) => {
@@ -10,6 +14,11 @@ exports.resendInvite = async (req, res) => {
 
     if (!id) {
       return res.status(400).json({ message: "Invite id is required" });
+    }
+
+    const urlCheck = assertFrontendUrlOkForEmailLinks();
+    if (!urlCheck.ok) {
+      return res.status(urlCheck.status).json({ message: urlCheck.message });
     }
 
     const [rows] = await db.query(
@@ -33,7 +42,7 @@ exports.resendInvite = async (req, res) => {
       [newToken, newExpiry, id]
     );
 
-    const inviteLink = `${process.env.FRONTEND_URL}/recruiter-signup?token=${newToken}`;
+    const inviteLink = recruiterSignupInviteUrl(newToken).url;
 
     await sendEmail({
       to: invite.email,
@@ -83,6 +92,11 @@ exports.inviteRecruiter = async (req, res) => {
       });
     }
 
+    const urlCheck = assertFrontendUrlOkForEmailLinks();
+    if (!urlCheck.ok) {
+      return res.status(urlCheck.status).json({ message: urlCheck.message });
+    }
+
     const token = require("crypto").randomBytes(32).toString("hex");
 
     await db.query(
@@ -91,7 +105,7 @@ exports.inviteRecruiter = async (req, res) => {
       [recruiterEmail, token]
     );
 
-    const inviteLink = `${process.env.FRONTEND_URL}/recruiter-signup?token=${token}`;
+    const inviteLink = recruiterSignupInviteUrl(token).url;
 
     await sendEmail({
       to: recruiterEmail,

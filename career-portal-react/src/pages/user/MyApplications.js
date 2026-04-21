@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import Layout from "../../components/common/Layout";
 import "../../components/common/layout.css";
 import { Search } from "lucide-react";
+import { getApiBaseUrl } from "../../utils/getApiBaseUrl";
 import "./MyApplications.css";
 
 function MyApplications() {
@@ -18,7 +19,7 @@ function MyApplications() {
     try {
       setLoading(true);
 
-      const res = await fetch("http://localhost:5000/api/jobs/my-applications", {
+      const res = await fetch(`${getApiBaseUrl()}/jobs/my-applications`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },

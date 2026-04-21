@@ -15,6 +15,13 @@ import {
   getRecruiterApplications,
   updateApplicationStatus,
 } from "../../services/recruiterService";
+import { getServerOrigin } from "../../utils/getApiBaseUrl";
+
+function resumeFileUrl(resume) {
+  if (!resume) return "#";
+  const path = String(resume).replace(/^\//, "");
+  return `${getServerOrigin()}/${path}`;
+}
 
 function ViewApplications() {
   const [applications, setApplications] = useState([]);
@@ -225,7 +232,7 @@ function ViewApplications() {
                         <td>
                           {app.resume ? (
                             <a
-                              href={`http://localhost:5000/${app.resume}`}
+                              href={resumeFileUrl(app.resume)}
                               target="_blank"
                               rel="noreferrer"
                               className="resume-link-btn"
@@ -337,7 +344,7 @@ function ViewApplications() {
                 <span className="detail-drawer-card-label">Resume</span>
                 {selectedApp.resume ? (
                   <a
-                    href={`http://localhost:5000/${selectedApp.resume}`}
+                    href={resumeFileUrl(selectedApp.resume)}
                     target="_blank"
                     rel="noreferrer"
                     className="resume-link-btn"

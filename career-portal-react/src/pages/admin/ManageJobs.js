@@ -9,6 +9,7 @@ import TableIconActionButton, {
   TableIconActions,
 } from "../../components/common/TableIconActionButton";
 import "./ManageJobs.css";
+import { getApiBaseUrl } from "../../utils/getApiBaseUrl";
 
 function ManageJobs() {
   const [jobs, setJobs] = useState([]);
@@ -36,7 +37,7 @@ function ManageJobs() {
     try {
       setLoading(true);
 
-      const res = await fetch("http://localhost:5000/api/admin/jobs", {
+      const res = await fetch(`${getApiBaseUrl()}/admin/jobs`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -109,7 +110,7 @@ function ManageJobs() {
   const confirmUpdate = async () => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/admin/jobs/status/${updateId}`,
+        `${getApiBaseUrl()}/admin/jobs/status/${updateId}`,
         {
           method: "PUT",
           headers: {
@@ -149,7 +150,7 @@ function ManageJobs() {
     deleteTimer = setTimeout(async () => {
       try {
         const res = await fetch(
-          `http://localhost:5000/api/admin/jobs/${deleteId}`,
+          `${getApiBaseUrl()}/admin/jobs/${deleteId}`,
           {
             method: "DELETE",
             headers: { Authorization: `Bearer ${token}` },

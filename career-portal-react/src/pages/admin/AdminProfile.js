@@ -3,6 +3,7 @@ import { toast } from "react-toastify";
 import Layout from "../../components/common/Layout";
 import "../../components/common/layout.css";
 import "../user/UserProfile";
+import { getApiBaseUrl } from "../../utils/getApiBaseUrl";
 
 function AdminProfile() {
   const [admin, setAdmin] = useState({
@@ -33,7 +34,7 @@ function AdminProfile() {
       setLoading(true);
       setMessage("");
 
-      const res = await fetch("http://localhost:5000/api/admin/profile", {
+      const res = await fetch(`${getApiBaseUrl()}/admin/profile`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -107,7 +108,7 @@ function AdminProfile() {
     try {
       setMessage("");
 
-      const res = await fetch("http://localhost:5000/api/admin/profile", {
+      const res = await fetch(`${getApiBaseUrl()}/admin/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

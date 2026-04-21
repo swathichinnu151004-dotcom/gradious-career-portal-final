@@ -61,10 +61,23 @@ function App() {
         <Route path="/job-details" element={<JobDetails />} />
         <Route path="/recruiter-signup" element={<RecruiterSignup />} />
         <Route path="/admin/profile" element={<AdminProfile />} />
-        
-<Route path="/recruiter/profile" element={<RecruiterProfile />} />
-        
-<Route path="/recruiter/post-job" element={<PostJob />} />
+
+        <Route
+          path="/recruiter/profile"
+          element={
+            <ProtectedRoute>
+              <RecruiterProfile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/recruiter/post-job"
+          element={
+            <ProtectedRoute>
+              <PostJob />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Admin Routes */}
         <Route

@@ -9,6 +9,7 @@ import TableIconActionButton, {
   TableIconActions,
 } from "../../components/common/TableIconActionButton";
 import "./ManageRecruiters.css";
+import { getApiBaseUrl } from "../../utils/getApiBaseUrl";
 
 function ManageRecruiters() {
   const [recruiters, setRecruiters] = useState([]);
@@ -29,7 +30,7 @@ function ManageRecruiters() {
     try {
       setLoading(true);
 
-      const res = await fetch("http://localhost:5000/api/admin/recruiters", {
+      const res = await fetch(`${getApiBaseUrl()}/admin/recruiters`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -89,7 +90,7 @@ function ManageRecruiters() {
   const updateStatus = async (id, status) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/admin/recruiters/status/${id}`,
+        `${getApiBaseUrl()}/admin/recruiters/status/${id}`,
         {
           method: "PUT",
           headers: {
@@ -129,7 +130,7 @@ function ManageRecruiters() {
   const confirmDelete = async () => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/admin/recruiters/${deleteId}`,
+        `${getApiBaseUrl()}/admin/recruiters/${deleteId}`,
         {
           method: "DELETE",
           headers: { Authorization: `Bearer ${token}` },

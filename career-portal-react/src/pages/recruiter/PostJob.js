@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import Layout from "../../components/common/Layout";
+import { getApiBaseUrl } from "../../utils/getApiBaseUrl";
 import "./postJob.css";
 
 function PostJob() {
@@ -42,7 +43,7 @@ function PostJob() {
     showMessage("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/recruiter/jobs", {
+      const res = await fetch(`${getApiBaseUrl()}/recruiter/jobs`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

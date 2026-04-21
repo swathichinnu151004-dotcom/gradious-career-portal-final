@@ -4,6 +4,7 @@ import Layout from "../../components/common/Layout";
 import "../../components/common/layout.css";
 import StatusChart from "./StatusChart";
 import DepartmentChart from "./DepartmentChart";
+import { getApiBaseUrl } from "../../utils/getApiBaseUrl";
 import "./dashboard.css";
 
 function UserDashboard() {
@@ -20,7 +21,7 @@ function UserDashboard() {
 
   const loadDashboard = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/user/dashboard-summary", {
+      const res = await fetch(`${getApiBaseUrl()}/user/dashboard-summary`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -51,7 +52,7 @@ function UserDashboard() {
 
   const loadLatestJobs = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/jobs/latest-jobs", {
+      const res = await fetch(`${getApiBaseUrl()}/jobs/latest-jobs`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

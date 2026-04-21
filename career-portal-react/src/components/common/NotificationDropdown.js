@@ -36,10 +36,14 @@ function NotificationDropdown() {
   const wrapRef = useRef(null);
   const itemsRef = useRef([]);
   itemsRef.current = items;
+  /** Avoid overlapping unread-count requests (interval + events firing together). */
+  const unreadFetchInFlightRef = useRef(false);
 
   const loadUnread = useCallback(async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
+    if (unreadFetchInFlightRef.current) return;
+    unreadFetchInFlightRef.current = true;
     try {
       const { data } = await fetchUnreadNotificationCount();
       const raw = data?.unreadCount ?? data?.count ?? 0;
@@ -49,6 +53,8 @@ function NotificationDropdown() {
       if (e?.response?.status === 401) {
         setUnreadCount(0);
       }
+    } finally {
+      unreadFetchInFlightRef.current = false;
     }
   }, []);
 
@@ -78,29 +84,36 @@ function NotificationDropdown() {
     }
   }, []);
 
+  // Unread badge: once on mount + one polling interval + debounced tab-visible refresh.
+  // Avoid `window` "focus" — it fires constantly (clicks, DevTools) and spams unread-count.
   useEffect(() => {
-    loadUnread();
-    const POLL_MS = 15000;
-    const id = setInterval(loadUnread, POLL_MS);
+    void loadUnread();
+    const POLL_MS = 30000;
+    const intervalId = setInterval(() => void loadUnread(), POLL_MS);
+
+    let debounceTimer = null;
     const onVisible = () => {
-      if (document.visibilityState === "visible") loadUnread();
+      if (document.visibilityState !== "visible") return;
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        debounceTimer = null;
+        void loadUnread();
+      }, 800);
     };
-    const onFocus = () => loadUnread();
     document.addEventListener("visibilitychange", onVisible);
-    window.addEventListener("focus", onFocus);
+
     return () => {
-      clearInterval(id);
+      clearInterval(intervalId);
       document.removeEventListener("visibilitychange", onVisible);
-      window.removeEventListener("focus", onFocus);
+      if (debounceTimer) clearTimeout(debounceTimer);
     };
   }, [loadUnread]);
 
   useEffect(() => {
     if (!open) return;
     const showSpinner = itemsRef.current.length === 0;
-    loadList({ showSpinner });
-    loadUnread();
-  }, [open, loadList, loadUnread]);
+    void loadList({ showSpinner });
+  }, [open, loadList]);
 
   useEffect(() => {
     const onRefresh = () => {

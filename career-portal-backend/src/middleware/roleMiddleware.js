@@ -4,7 +4,9 @@ const roleMiddleware = (requiredRole) => {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    if (req.user.role !== requiredRole) {
+    const actual = String(req.user.role || "").toLowerCase().trim();
+    const required = String(requiredRole || "").toLowerCase().trim();
+    if (actual !== required) {
       return res.status(403).json({ message: "Access denied" });
     }
 

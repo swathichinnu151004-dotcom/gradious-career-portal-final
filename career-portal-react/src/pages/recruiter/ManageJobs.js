@@ -11,6 +11,12 @@ import TableIconActionButton, {
   TableIconActions,
 } from "../../components/common/TableIconActionButton";
 import "./ManageJobs.css";
+import { getApiBaseUrl } from "../../utils/getApiBaseUrl";
+
+function normalizeJobList(data) {
+  if (!Array.isArray(data)) return [];
+  return data.filter((item) => item != null && typeof item === "object");
+}
 
 function ManageRecruiterJobs() {
   const token = localStorage.getItem("token");
@@ -28,34 +34,35 @@ function ManageRecruiterJobs() {
     type: "success",
   });
 
-useEffect(() => {
-  const loadJobs = async () => {
-    try {
-      const res = await fetch("http://localhost:5000/api/recruiter/jobs", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+  useEffect(() => {
+    const loadJobs = async () => {
+      try {
+        const res = await fetch(`${getApiBaseUrl()}/recruiter/jobs`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-      const data = await res.json().catch(() => []);
-      if (!res.ok) {
-        toast.error(
-          (data && typeof data === "object" && data.message) ||
-            "Failed to load jobs."
-        );
+        const data = await res.json().catch(() => []);
+        if (!res.ok) {
+          toast.error(
+            (data && typeof data === "object" && data.message) ||
+              "Failed to load jobs."
+          );
+          setJobs([]);
+          return;
+        }
+        setJobs(normalizeJobList(data));
+      } catch (err) {
+        console.error("Load jobs error:", err);
+        toast.error("Could not load jobs.");
         setJobs([]);
-        return;
       }
-      setJobs(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Load jobs error:", err);
-      toast.error("Could not load jobs.");
-      setJobs([]);
-    }
-  };
+    };
 
-  loadJobs();
-}, [token]);
+    loadJobs();
+  }, [token]);
+
   const showToast = (message, type = "success") => {
     flushSync(() => {
       setPortalToast({ show: true, message, type });
@@ -67,7 +74,7 @@ useEffect(() => {
 
   const reloadJobs = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/recruiter/jobs", {
+      const res = await fetch(`${getApiBaseUrl()}/recruiter/jobs`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -81,7 +88,7 @@ useEffect(() => {
         );
         return;
       }
-      setJobs(Array.isArray(data) ? data : []);
+      setJobs(normalizeJobList(data));
     } catch (err) {
       console.error("Reload jobs error:", err);
       toast.error("Could not refresh jobs.");
@@ -89,7 +96,10 @@ useEffect(() => {
   };
 
   const filteredJobs = jobs.filter((job) => {
-    const text = `${job.job_title || ""} ${job.department || ""} ${job.status || ""}`.toLowerCase();
+    if (!job) return false;
+    const text = `${job.job_title || ""} ${job.department || ""} ${
+      job.status || ""
+    }`.toLowerCase();
     return text.includes(search.toLowerCase());
   });
 
@@ -108,7 +118,7 @@ useEffect(() => {
       };
 
       const res = await fetch(
-        `http://localhost:5000/api/recruiter/jobs/${updateJob.id}`,
+        `${getApiBaseUrl()}/recruiter/jobs/${updateJob.id}`,
         {
           method: "PUT",
           headers: {
@@ -140,7 +150,7 @@ useEffect(() => {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/recruiter/jobs/${deleteJobId}`,
+        `${getApiBaseUrl()}/recruiter/jobs/${deleteJobId}`,
         {
           method: "DELETE",
           headers: {
@@ -205,12 +215,15 @@ useEffect(() => {
                   </td>
                 </tr>
               ) : (
-                filteredJobs.map((job) => {
+                filteredJobs.map((job, rowIndex) => {
+                  if (!job) return null;
                   const isActive =
                     String(job.status || "").toUpperCase() === "ACTIVE";
+                  const rowKey =
+                    job.id != null ? String(job.id) : `job-row-${rowIndex}`;
 
                   return (
-                    <tr key={job.id}>
+                    <tr key={rowKey}>
                       <td>{job.job_title || "-"}</td>
                       <td>{job.department || "-"}</td>
                       <td>
@@ -284,7 +297,8 @@ useEffect(() => {
         )}
       </DetailDrawer>
 
-      <ModalPortal open={!!updateJob}>
+      <ModalPortal open={Boolean(updateJob)}>
+        {updateJob ? (
         <div
           className="modal-overlay"
           onClick={() => setUpdateJob(null)}
@@ -420,6 +434,7 @@ useEffect(() => {
             </form>
           </div>
         </div>
+        ) : null}
       </ModalPortal>
 
       <ModalPortal open={!!deleteJobId}>

@@ -3,8 +3,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import "./Register.css";
 import registerBg from "../../assets/register.jpg";
+import { getApiBaseUrl } from "../../utils/getApiBaseUrl";
 
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = getApiBaseUrl();
 
 function Register() {
   const navigate = useNavigate();

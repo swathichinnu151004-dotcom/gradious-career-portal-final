@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { getApiBaseUrl } from "../../utils/getApiBaseUrl";
 import "./Home.css";
 
 function Home() {
@@ -20,7 +21,7 @@ function Home() {
 
   const loadJobs = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/jobs/public-latest-jobs");
+      const res = await fetch(`${getApiBaseUrl()}/jobs/public-latest-jobs`);
 
       if (!res.ok) {
         throw new Error("Failed to fetch jobs");
@@ -38,7 +39,7 @@ function Home() {
 
   const loadDepartments = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/jobs/department-counts");
+      const res = await fetch(`${getApiBaseUrl()}/jobs/department-counts`);
 
       if (!res.ok) {
         throw new Error("Failed to fetch departments");
@@ -65,7 +66,7 @@ function Home() {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/jobs/search?skill=${encodeURIComponent(
+        `${getApiBaseUrl()}/jobs/search?skill=${encodeURIComponent(
           skill
         )}&location=${encodeURIComponent(location)}`
       );

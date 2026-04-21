@@ -8,6 +8,7 @@ import TableIconActionButton, {
   TableIconActions,
 } from "../../components/common/TableIconActionButton";
 import "./ViewApplications.css";
+import { getApiBaseUrl } from "../../utils/getApiBaseUrl";
 
 function Applications() {
   const [applications, setApplications] = useState([]);
@@ -19,7 +20,7 @@ function Applications() {
 
   const loadApplications = useCallback(async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/admin/applications", {
+      const res = await fetch(`${getApiBaseUrl()}/admin/applications`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -56,7 +57,7 @@ function Applications() {
   const updateStatus = async (id, status) => {
     try {
       const res = await fetch(
-        `http://localhost:5000/api/admin/applications/status/${id}`,
+        `${getApiBaseUrl()}/admin/applications/status/${id}`,
         {
           method: "PUT",
           headers: {

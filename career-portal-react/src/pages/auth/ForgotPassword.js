@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
+import { getApiBaseUrl } from "../../utils/getApiBaseUrl";
 import "./ForgotPassword.css";
 
 function ForgotPassword() {
@@ -12,7 +13,7 @@ function ForgotPassword() {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/forgot-password", {
+      const res = await fetch(`${getApiBaseUrl()}/auth/forgot-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

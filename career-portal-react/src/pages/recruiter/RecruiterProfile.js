@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "react-toastify";
 import Layout from "../../components/common/Layout";
+import { getApiBaseUrl } from "../../utils/getApiBaseUrl";
 import "./RecruiterProfile.css";
 
 function RecruiterProfile() {
@@ -15,13 +16,15 @@ function RecruiterProfile() {
     status: "",
   });
 
-  const token = localStorage.getItem("token");
-
-  const loadProfile = useCallback(async () => {
+  const loadProfile = useCallback(async (signal) => {
     try {
-      const res = await fetch("http://localhost:5000/api/recruiter/profile", {
+      const authToken = localStorage.getItem("token");
+      if (!authToken) return;
+
+      const res = await fetch(`${getApiBaseUrl()}/recruiter/profile`, {
+        signal,
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
       });
 
@@ -46,13 +49,16 @@ function RecruiterProfile() {
       setProfile(formattedProfile);
       setFormData(formattedProfile);
     } catch (err) {
+      if (err?.name === "AbortError") return;
       console.error("Profile error:", err);
       toast.error("Could not load profile.");
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
-    loadProfile();
+    const ac = new AbortController();
+    void loadProfile(ac.signal);
+    return () => ac.abort();
   }, [loadProfile]);
 
   const handleEdit = () => {
@@ -92,6 +98,12 @@ function RecruiterProfile() {
     e.preventDefault();
 
     try {
+      const authToken = localStorage.getItem("token");
+      if (!authToken) {
+        toast.error("Session expired. Please sign in again.");
+        return;
+      }
+
       const payload = {
         name: formData.name?.trim() || "",
         email: formData.email?.trim() || "",
@@ -100,11 +112,11 @@ function RecruiterProfile() {
         location: formData.location?.trim() || "",
       };
 
-      const res = await fetch("http://localhost:5000/api/recruiter/profile", {
+      const res = await fetch(`${getApiBaseUrl()}/recruiter/profile`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify(payload),
       });
@@ -134,21 +146,18 @@ function RecruiterProfile() {
     }
   };
 
-  if (!profile) {
-    return (
-      <Layout role="recruiter" title="Profile">
-        <div className="loading">Loading profile...</div>
-      </Layout>
-    );
-  }
-
   return (
     <Layout
       role="recruiter"
       title="Profile"
-      subtitle="Manage your recruiter details"
+      subtitle={
+        profile ? "Manage your recruiter details" : "Loading your details…"
+      }
     >
-      <div className="profile-page">
+      {!profile ? (
+        <div className="loading">Loading profile...</div>
+      ) : (
+        <div className="profile-page">
         <div className="profile-header">
           <h2>Recruiter Profile</h2>
 
@@ -264,7 +273,8 @@ function RecruiterProfile() {
             </div>
           </form>
         )}
-      </div>
+        </div>
+      )}
     </Layout>
   );
 }

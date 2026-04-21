@@ -5,6 +5,7 @@ const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const { OAuth2Client } = require("google-auth-library");
 const sendEmail = require("../utils/sendMail");
+const { passwordResetUrl, assertFrontendUrlOkForEmailLinks } = require("../utils/frontendPublicUrl");
 
 function normalizeGoogleWebClientId(value) {
   let s = String(value || "").trim();
@@ -19,14 +20,11 @@ function normalizeGoogleWebClientId(value) {
 
 /* ================= FORGOT PASSWORD ================= */
 
-const query = (sql, values) => {
-  return new Promise((resolve, reject) => {
-    db.query(sql, values, (err, results) => {
-      if (err) return reject(err);
-      resolve(results);
-    });
-  });
-};
+/** Use the promise pool API only — callback `db.query(..., cb)` can mis-handle connections with `mysql2/promise`. */
+async function runQuery(sql, values) {
+  const [rows] = await db.query(sql, values);
+  return rows;
+}
 
 const forgotPassword = async (req, res) => {
   try {
@@ -36,25 +34,27 @@ const forgotPassword = async (req, res) => {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    const users = await query(
-      "SELECT * FROM users WHERE email = ?",
-      [email]
-    );
+    const users = await runQuery("SELECT * FROM users WHERE email = ?", [email]);
 
     if (users.length === 0) {
       return res.status(404).json({ message: "User not found" });
     }
 
+    const urlCheck = assertFrontendUrlOkForEmailLinks();
+    if (!urlCheck.ok) {
+      return res.status(urlCheck.status).json({ message: urlCheck.message });
+    }
+
     const token = crypto.randomBytes(32).toString("hex");
 
-    await query(
+    await runQuery(
       `UPDATE users
        SET reset_token = ?, reset_token_expiry = DATE_ADD(NOW(), INTERVAL 15 MINUTE)
        WHERE email = ?`,
       [token, email]
     );
 
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+    const resetLink = passwordResetUrl(token).url;
 
     const html = `
       <div style="font-family: Arial, sans-serif; padding: 20px;">
@@ -511,77 +511,40 @@ const registerRecruiter = async (req, res) => {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const checkInviteSql = `
-      SELECT * FROM recruiter_invites
-      WHERE token = ? AND status = 'Pending'
-    `;
+    const [inviteResults] = await db.query(
+      `SELECT * FROM recruiter_invites WHERE token = ? AND status = 'Pending'`,
+      [token]
+    );
 
-    db.query(checkInviteSql, [token], async (err, inviteResults) => {
-      if (err) {
-        logger.error("Invite check error:", err);
-        return res.status(500).json({ message: "Database error" });
-      }
+    if (inviteResults.length === 0) {
+      return res.status(400).json({ message: "Invalid or expired invite token" });
+    }
 
-      if (inviteResults.length === 0) {
-        return res.status(400).json({ message: "Invalid or expired invite token" });
-      }
+    const email = inviteResults[0].email;
 
-      const invite = inviteResults[0];
-      const email = invite.email;
+    const [recruiterResults] = await db.query(
+      `SELECT * FROM recruiters WHERE email = ?`,
+      [email]
+    );
 
-      const checkRecruiterSql = `
-        SELECT * FROM recruiters WHERE email = ?
-      `;
+    if (recruiterResults.length > 0) {
+      return res.status(400).json({ message: "Recruiter already exists" });
+    }
 
-      db.query(checkRecruiterSql, [email], async (err, recruiterResults) => {
-        if (err) {
-          logger.error("Recruiter check error:", err);
-          return res.status(500).json({ message: "Database error" });
-        }
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-        if (recruiterResults.length > 0) {
-          return res.status(400).json({ message: "Recruiter already exists" });
-        }
+    await db.query(
+      `INSERT INTO recruiters
+        (name, email, password, company_name, phone, location, role, status, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, 'recruiter', 'Active', NOW())`,
+      [name, email, hashedPassword, company_name, phone, location]
+    );
 
-        const hashedPassword = await bcrypt.hash(password, 10);
+    await db.query(`UPDATE recruiter_invites SET status = 'Accepted' WHERE token = ?`, [
+      token,
+    ]);
 
-        const insertRecruiterSql = `
-          INSERT INTO recruiters
-          (name, email, password, company_name, phone, location, role, status, created_at)
-          VALUES (?, ?, ?, ?, ?, ?, 'recruiter', 'Active', NOW())
-        `;
-
-        db.query(
-          insertRecruiterSql,
-          [name, email, hashedPassword, company_name, phone, location],
-          (err, result) => {
-            if (err) {
-              logger.error("Insert recruiter error:", err);
-              return res.status(500).json({ message: "Failed to create recruiter" });
-            }
-
-            const updateInviteSql = `
-              UPDATE recruiter_invites
-              SET status = 'Accepted'
-              WHERE token = ?
-            `;
-
-            db.query(updateInviteSql, [token], (err) => {
-              if (err) {
-                logger.error("Update invite error:", err);
-                return res.status(500).json({
-                  message: "Recruiter created but invite status not updated"
-                });
-              }
-
-              return res.status(201).json({
-                message: "Recruiter registered successfully"
-              });
-            });
-          }
-        );
-      });
-    });
+    return res.status(201).json({ message: "Recruiter registered successfully" });
   } catch (error) {
     logger.error("Register recruiter error:", error);
     return res.status(500).json({ message: "Server error" });

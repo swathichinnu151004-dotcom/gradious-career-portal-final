@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { getApiBaseUrl } from "../../utils/getApiBaseUrl";
 import "./RecruiterSignup.css";
 
 function RecruiterSignup() {
@@ -24,48 +25,48 @@ function RecruiterSignup() {
   const [formDisabled, setFormDisabled] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const API_BASE_URL = "http://localhost:5000/api";
-  // If you want ngrok, use:
-  // const API_BASE_URL = "https://timocratic-sessional-lewis.ngrok-free.dev/api";
-useEffect(() => {
-  const loadInvite = async () => {
-    clearMessage();
+  const API_BASE_URL = getApiBaseUrl();
 
-    if (!token) {
-      showMessage("Invalid signup link. Token is missing.", "error");
-      setFormDisabled(true);
-      return;
-    }
+  useEffect(() => {
+    const loadInvite = async () => {
+      clearMessage();
 
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/auth/validate-invite?token=${encodeURIComponent(token)}`
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        const msg = data.message || "Invalid or expired invite link.";
-        showMessage(msg, "error");
-        toast.error(msg);
+      if (!token) {
+        showMessage("Invalid signup link. Token is missing.", "error");
         setFormDisabled(true);
         return;
       }
 
-      setFormData((prev) => ({
-        ...prev,
-        email: data.email || "",
-      }));
-    } catch (error) {
-      console.error("Validate invite error:", error);
-      showMessage("Server error while validating invite link.", "error");
-      toast.error("Server error while validating invite link.");
-      setFormDisabled(true);
-    }
-  };
+      try {
+        const response = await fetch(
+          `${API_BASE_URL}/auth/validate-invite?token=${encodeURIComponent(token)}`
+        );
 
-  loadInvite();
-}, [token]);
+        const data = await response.json();
+
+        if (!response.ok) {
+          const msg = data.message || "Invalid or expired invite link.";
+          showMessage(msg, "error");
+          toast.error(msg);
+          setFormDisabled(true);
+          return;
+        }
+
+        setFormData((prev) => ({
+          ...prev,
+          email: data.email || "",
+        }));
+      } catch (error) {
+        console.error("Validate invite error:", error);
+        showMessage("Server error while validating invite link.", "error");
+        toast.error("Server error while validating invite link.");
+        setFormDisabled(true);
+      }
+    };
+
+    loadInvite();
+  }, [token]);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,

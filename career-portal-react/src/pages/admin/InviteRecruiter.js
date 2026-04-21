@@ -3,9 +3,10 @@ import { flushSync } from "react-dom";
 import Layout from "../../components/common/Layout";
 import ModalPortal from "../../components/common/ModalPortal";
 import AppPortalToast from "../../components/common/AppPortalToast";
+import { getApiBaseUrl } from "../../utils/getApiBaseUrl";
 import "./inviteRecruiter.css";
 
-const API_BASE_URL = "http://localhost:5000/api";
+const API_BASE_URL = getApiBaseUrl();
 const ROWS_PER_PAGE = 5;
 
 function InviteRecruiter() {

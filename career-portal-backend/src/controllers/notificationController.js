@@ -131,11 +131,12 @@ exports.getUnreadNotificationCount = async (req, res) => {
       });
     }
 
+    // Simpler predicate than sqlRowIsUnread() so MySQL can use (user_id, role, is_read) indexes on large tables.
     const [rows] = await db.query(
       `SELECT COUNT(*) AS unreadCount
        FROM notifications
        WHERE user_id = ? AND LOWER(TRIM(role)) = ?
-         AND ${sqlRowIsUnread()}`,
+         AND (is_read IS NULL OR is_read = 0 OR is_read <> 1)`,
       [userId, role]
     );
 

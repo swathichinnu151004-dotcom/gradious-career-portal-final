@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { getApiBaseUrl } from "../../utils/getApiBaseUrl";
 import "./layout.css";
 
 function Topbar({ title, subtitle, role }) {
@@ -13,12 +14,13 @@ function Topbar({ title, subtitle, role }) {
 
         let endpoint = "";
 
+        const base = getApiBaseUrl();
         if (role === "admin") {
-          endpoint = "http://localhost:5000/api/admin/profile";
+          endpoint = `${base}/admin/profile`;
         } else if (role === "recruiter") {
-          endpoint = "http://localhost:5000/api/recruiter/profile";
+          endpoint = `${base}/recruiter/profile`;
         } else {
-          endpoint = "http://localhost:5000/api/user/profile";
+          endpoint = `${base}/user/profile`;
         }
 
         const res = await fetch(endpoint, {
